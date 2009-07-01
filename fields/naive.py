@@ -3,7 +3,7 @@
 
 class FiniteField:
     """
-    A finite field (currently limited to prime size).
+    Finite field (currently limited to prime size).
     
     This class is unnecessary, strictly speaking. Its only purpose at the
     moment is to make the algorithms more verbose.
@@ -15,7 +15,8 @@ class FiniteField:
         self.__size = int(size)
     
     def __call__(self, representative):
-        return FiniteFieldElement( representative, self.__size )
+        # TODO: Choose correct representation (size is prime or prime power)
+        return FinitePrimeFieldElement( representative, self.__size )
     
     def __str__(self):
         return """finite field of {0} elements""".format( self.__size )
@@ -23,7 +24,7 @@ class FiniteField:
 
 class FinitePrimeFieldElement:
     """
-    An element from a finite field of prime size, that is, a congruence
+    Element from a finite field of prime size, that is, a congruence
     class modulo a prime. It provides the arithmetic operations in the field.
     
     The implementation emphasizes simplicity and omits all possible
@@ -76,7 +77,7 @@ class FinitePrimeFieldElement:
                   )
 
     def __truediv__(self, other):
-        return self * other.inverse
+        return self * other.inverse()
 
     def __pow__(self, other):
         # This only makes sense for integer arguments.
@@ -85,7 +86,6 @@ class FinitePrimeFieldElement:
                       self.__modulus
                   )
 
-    @property
     def inverse(self):
         # Extended euclidean algorithm, see Knuth, D. E.
         # "The Art of Computer Programming", volume 1, second edition, p.14
