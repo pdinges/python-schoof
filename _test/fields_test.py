@@ -3,7 +3,7 @@
 
 import unittest
 
-from fields.naive import FiniteField
+from fields.finite.naive import FiniteField
 
 
 # Test the implementation for one small and one large field. Large
@@ -83,15 +83,15 @@ class ArithmeticTest(unittest.TestCase):
 
     def test_mul_inverse(self):
         """Multiplicative inverse base case"""
-        self.assert_( F(5).inverse() == F(7) )
-        self.assert_( G(2**45).inverse() == G(2**44) )
+        self.assert_( F(5).multiplicative_inverse() == F(7) )
+        self.assert_( G(2**45).multiplicative_inverse() == G(2**44) )
     
     def test_mul_inverse_zero(self):
         """Multiplicative inverse of zero raises exception"""
         def f():
-            return F(0).inverse()
+            return F(0).multiplicative_inverse()
         def g():
-            return G(0).inverse()
+            return G(0).multiplicative_inverse()
         self.assertRaises( ZeroDivisionError, f )
         self.assertRaises( ZeroDivisionError, g )
     
@@ -99,8 +99,8 @@ class ArithmeticTest(unittest.TestCase):
     #- Division --------------------------------------------------------------- 
     def test_truediv_base(self):
         """Division base case"""
-        self.assert_( F(1) / F(13) == F(13).inverse() )
-        self.assert_( G(1) / G(13) == G(13).inverse() )
+        self.assert_( F(1) / F(13) == F(13).multiplicative_inverse() )
+        self.assert_( G(1) / G(13) == G(13).multiplicative_inverse() )
 
     def test_truediv_zero(self):
         """Division by zero raises exception"""

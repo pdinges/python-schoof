@@ -1,28 +1,20 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
-class FiniteField:
+from fields.finite import FiniteField as SuperField
+
+class FiniteField(SuperField):
     """
-    Finite field (currently limited to prime size).
-    
-    This class is unnecessary, strictly speaking. Its only purpose at the
-    moment is to make the algorithms more verbose.
+    Finite field, naive implementation (currently limited to prime size).
     """
-    
-    def __init__(self, size):
-        # TODO: Add assertion that size is a prime power
-        # TODO: Calculate characteristic and use correct class for elements
-        self.__size = int(size)
-    
     def __call__(self, representative):
         # TODO: Choose correct representation (size is prime or prime power)
-        return FinitePrimeFieldElement( representative, self.__size )
-    
-    def __str__(self):
-        return """finite field of {0} elements""".format( self.__size )
+        return FinitePrimeFieldElement( representative, self._size )
 
 
-class FinitePrimeFieldElement:
+from fields import DefaultImplementationElement
+
+class FinitePrimeFieldElement(DefaultImplementationElement):
     """
     Element from a finite field of prime size, that is, a congruence
     class modulo a prime. It provides the arithmetic operations in the field.
@@ -37,20 +29,9 @@ class FinitePrimeFieldElement:
         # The '%' operator on integers returns a number in range(0, modulus).
         self.__remainder = int(representative) % self.__modulus
 
-    def __hash__(self):
-        # FIXME: Remove this? It is unnecessary for our purpose.
-        # Use tuple form for hashing.
-        return hash((self.__remainder, self.__modulus)) 
-
     def __eq__(self, other):
         return self.__remainder == other.__remainder \
             and self.__modulus == other.__modulus
-
-    def __neq__(self, other):
-        return not self == other
-
-    def __neg__(self):
-        return self.__class__( -self.__remainder, self.__modulus )
 
     def __add__(self, other):
         assert self.__modulus == other.__modulus, \
@@ -60,13 +41,8 @@ class FinitePrimeFieldElement:
                       self.__modulus
                   )
     
-    def __sub__(self, other):
-        assert self.__modulus == other.__modulus, \
-            "elements have different modulus"
-        return self.__class__(
-                      self.__remainder - other.__remainder,
-                      self.__modulus
-                  )
+    def __neg__(self):
+        return self.__class__( -self.__remainder, self.__modulus )
 
     def __mul__(self, other):
         assert self.__modulus == other.__modulus, \
@@ -76,18 +52,8 @@ class FinitePrimeFieldElement:
                       self.__modulus
                   )
 
-    def __truediv__(self, other):
-        return self * other.inverse()
-
-    def __pow__(self, other):
-        # This only makes sense for integer arguments.
-        return self.__class__(
-                      pow(self.__remainder, int(other), self.__modulus),
-                      self.__modulus
-                  )
-
-    def inverse(self):
-        # Extended euclidean algorithm, see Knuth, D. E.
+    def multiplicative_inverse(self):
+        # Extended Euclidean algorithm, see Knuth, D. E.
         # "The Art of Computer Programming", volume 1, second edition, p.14
         # FIXME: Clean up this mess.
         ap, b = 1, 1
