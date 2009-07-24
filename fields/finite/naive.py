@@ -11,6 +11,12 @@ class FiniteField(SuperField):
         # TODO: Choose correct representation (size is prime or prime power)
         return FinitePrimeFieldElement( representative, self._size )
 
+    def zero(self):
+        return self( 0 )
+    
+    def one(self):
+        return self( 1 )
+
 
 from fields import DefaultImplementationElement
 

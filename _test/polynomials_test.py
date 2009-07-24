@@ -3,16 +3,8 @@
 
 import unittest
 
-from polynomials.naive import PolynomialRing
-
-
-# Use integers as coefficients
-class IntegerRing:
-    def __call__(self, n):
-        return int(n)
-    
-    def zero(self):
-        return 0
+from rings.integers.naive import IntegerRing
+from rings.polynomials.naive import PolynomialRing
 
 Z = IntegerRing()
 R = PolynomialRing( Z )
@@ -124,6 +116,19 @@ class ArithmeticTest(unittest.TestCase):
         """Multiplicative inverse raises an exception"""
         self.assertRaises( TypeError, R(1).multiplicative_inverse )
         
+
+    #- Division --------------------------------------------------------------- 
+    def test_divmod_base(self):
+        """Division base case"""
+        q, r = divmod( R(-1, 0, 1, 2, -1, 4), R(1, 0, 1) )
+        self.assert_( q == R(2, -2, -1, 4) )
+        self.assert_( r == R(-3, 2) )
+    
+    def test_mod_base(self):
+        """Division modulus case"""
+        r = R(-1, 0, 1, 2, -1, 4) % R(1, 0, 1)
+        self.assert_( r == R(-3, 2) )
+
     
     #- Exponentiation --------------------------------------------------------- 
     def test_pow_base(self):

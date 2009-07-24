@@ -9,6 +9,12 @@ class FractionField(SuperField):
         # integral domain?
         return FormalQuotientElement(numerator, denominator)
     
+    def zero(self):
+        return self( 0, 1 )
+    
+    def one(self):
+        return self( 1, 1 )
+    
     
 from fields import DefaultImplementationElement
 
