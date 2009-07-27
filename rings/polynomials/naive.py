@@ -23,13 +23,14 @@ class PolynomialRing:
         Note that the list must be ordered ascending: first the constant,
         then the linear, quadratic and cubic coefficients; and so on.
         """
-        return ListPolynomial( self, list(coefficient_list) )
+        converted_coefficients = [ self._coefficient_field(c) for c in coefficient_list ]
+        return ListPolynomial( self, converted_coefficients )
     
     def zero(self):
-        return ListPolynomial( self, self._coefficient_field.zero() )
+        return ListPolynomial( self, [ self._coefficient_field.zero() ] )
     
     def one(self):
-        return ListPolynomial( self, self._coefficient_field.one() )    
+        return ListPolynomial( self, [ self._coefficient_field.one() ] )    
     
     def __str__(self):
         # Requires the names of indeterminates and the field.
@@ -61,7 +62,7 @@ class ListPolynomial(DefaultImplementationElement):
         return len( self.__coefficients ) - 1
     
     
-    def __nonzero__(self):
+    def __bool__(self):
         # At least one non-zero coefficient present
         return len( self.__coefficients ) > 0
     
