@@ -54,6 +54,12 @@ class GenericQuotientClass(DefaultImplementationElement):
     def source_ring(self):
         return self.__source_ring
 
+    def remainder(self):
+        return self.__remainder
+    
+    def modulus(self):
+        return self.__source_ring.modulus()
+
     def __eq__(self, other):
         try:
             # Ensure that the second operand is a quotient class 
