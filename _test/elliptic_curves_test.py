@@ -3,7 +3,7 @@
 
 import unittest
 
-from fields.naive import FiniteField
+from fields.finite.naive import FiniteField
 from elliptic_curves.naive import EllipticCurve, PointAtInfinity
 
 

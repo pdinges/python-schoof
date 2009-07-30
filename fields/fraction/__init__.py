@@ -15,5 +15,5 @@ class FractionField:
         raise NotImplementedError
     
     def __str__(self):
-        name = """field of fractions over the {0}"""
+        name = """Field of fractions over the {0}"""
         return name.format( self._integral_domain )

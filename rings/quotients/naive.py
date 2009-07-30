@@ -6,8 +6,14 @@ class QuotientRing:
         self._ring = ring
         self._modulus = modulus
     
-    def __call__(self, *representative):
-        return GenericQuotientClass( self, self._ring( *representative ) )
+    def __call__(self, element_description):
+        if isinstance(element_description, GenericQuotientClass):
+            if element_description.source_ring() != self:
+                raise TypeError("quotient class comes from a different ring")
+            
+            return element_description
+        
+        return GenericQuotientClass( self, self._ring( element_description ) )
 
     def modulus(self):
         return self._modulus
@@ -45,17 +51,32 @@ class GenericQuotientClass(DefaultImplementationElement):
         self.__source_ring = quotient_ring
         self.__remainder = representative % self.__source_ring.modulus()
 
+    def source_ring(self):
+        return self.__source_ring
+
     def __eq__(self, other):
-        assert self.__source_ring == other.__source_ring, \
-            "elements come from different rings"
+        try:
+            # Ensure that the second operand is a quotient class 
+            other = self.__source_ring(other)
+        except TypeError:
+            # This class does not know how to handle the second operand;
+            # try other.__eq__() instead.
+            return NotImplemented
+
         return self.__remainder == other.__remainder
 
     def __bool__(self):
         return bool( self.__remainder )
 
     def __add__(self, other):
-        assert self.__source_ring == other.__source_ring, \
-            "elements come from different rings"
+        try:
+            # Ensure that the second operand is a quotient class
+            other = self.__source_ring(other)
+        except TypeError:
+            # This class does not know how to handle the second operand;
+            # try other.__radd__() instead.
+            return NotImplemented
+
         return self.__class__(
                       self.__source_ring,
                       self.__remainder + other.__remainder
@@ -65,8 +86,14 @@ class GenericQuotientClass(DefaultImplementationElement):
         return self.__class__( self.__source_ring, -self.__remainder )
 
     def __mul__(self, other):
-        assert self.__source_ring == other.__source_ring, \
-            "elements come from different rings"
+        try:
+            # Ensure that the second operand is a quotient class 
+            other = self.__source_ring(other)
+        except TypeError:
+            # This class does not know how to handle the second operand;
+            # try other.__rmul__() instead.
+            return NotImplemented
+
         return self.__class__(
                       self.__source_ring,
                       self.__remainder * other.__remainder

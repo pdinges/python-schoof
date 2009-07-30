@@ -15,16 +15,35 @@ class PolynomialRing:
     
     def coefficient_field(self):
         return self._coefficient_field
-        
-    def __call__(self, *coefficient_list):
+
+    def __call__(self, element_description, *further_coefficients):
         """
-        Create a new polynomial from the given list of coefficients.
+        Create a new polynomial from the given description.
         
-        Note that the list must be ordered ascending: first the constant,
+        Valid descriptions are:
+          - ListPolynomials (further_coefficients will be ignored)
+          - iterable objects that provides the list of coefficients
+            (again, further_coefficients will be ignored)
+          - any number of function arguments; they will be combined
+            into the list of coefficients 
+        
+        Note that the list must be in ascending order: first the constant,
         then the linear, quadratic and cubic coefficients; and so on.
         """
-        converted_coefficients = [ self._coefficient_field(c) for c in coefficient_list ]
-        return ListPolynomial( self, converted_coefficients )
+        if isinstance(element_description, ListPolynomial):
+            if element_description.source_ring() != self:
+                raise TypeError("polynomial comes from a different ring")
+            
+            return element_description
+        
+        else:
+            if not hasattr(element_description, "__iter__"):
+              coefficients = [ element_description ] + list(further_coefficients)  
+            else:
+                coefficients = element_description
+
+            F = self._coefficient_field
+            return ListPolynomial( self, [ F(c) for c in coefficients ] )
     
     def zero(self):
         return ListPolynomial( self, [ self._coefficient_field.zero() ] )
@@ -57,6 +76,10 @@ class ListPolynomial(DefaultImplementationElement):
         self.__remove_leading_zeros()
 
     
+    def source_ring(self):
+        return self.__source_ring
+    
+    
     def degree(self):
         # FIXME: The degree of the zero polynomial is minus infinity.
         return len( self.__coefficients ) - 1
@@ -68,6 +91,14 @@ class ListPolynomial(DefaultImplementationElement):
     
     
     def __eq__(self, other):
+        try:
+            # Ensure that the second operand is a polynomial 
+            other = self.__source_ring(other)
+        except TypeError:
+            # This class does not know how to handle the second operand;
+            # try other.__eq__() instead.
+            return NotImplemented
+
         if self.degree() != other.degree():
             return False
         
@@ -80,10 +111,19 @@ class ListPolynomial(DefaultImplementationElement):
     
     
     def __add__(self, other):
+        try:
+            # Ensure that the second operand is a polynomial 
+            other = self.__source_ring(other)
+        except TypeError:
+            # This class does not know how to handle the second operand;
+            # try other.__radd__() instead.
+            return NotImplemented
+        
+        zero = self.__source_ring.coefficient_field().zero()
         coefficient_pairs = self.__pad_and_zip(
                                     self.__coefficients,
                                     other.__coefficients,
-                                    self.__source_ring.coefficient_field().zero()
+                                    zero
                                 )
         coefficient_sums = [ x + y for x, y in coefficient_pairs ]
         return self.__class__( self.__source_ring, coefficient_sums )
@@ -97,6 +137,14 @@ class ListPolynomial(DefaultImplementationElement):
     
     
     def __mul__(self, other):
+        try:
+            # Ensure that the second operand is a polynomial 
+            other = self.__source_ring(other)
+        except TypeError:
+            # This class does not know how to handle the second operand;
+            # try other.__rmul__() instead.
+            return NotImplemented
+
         # Initialize result as list of all zeros
         zero = self.__source_ring.coefficient_field().zero()
         result = [ zero ] * (self.degree() + other.degree() + 2)
@@ -109,6 +157,14 @@ class ListPolynomial(DefaultImplementationElement):
     
     
     def __divmod__(self, other):
+        try:
+            # Ensure that the second operand is a polynomial 
+            other = self.__source_ring(other)
+        except TypeError:
+            # This class does not know how to handle the second operand;
+            # try other.__rdivmod__() instead.
+            return NotImplemented
+
         dividend = self.__coefficients[:]
         divisor = other.__coefficients[:]
         n = other.degree()
@@ -146,13 +202,14 @@ class ListPolynomial(DefaultImplementationElement):
         
         
     def __str__(self):
-        summands = [ "{0} * x**{1}".format(c, i) \
-                        for i, c in enumerate( self.__coefficients ) ]
+        summands = [ "{0} * x**{1}".format(c, i+2) \
+                        for i, c in enumerate( self.__coefficients[2:] ) if c ]
         
         # Write constant and linear term without exponents
-        summands[0] = str( self.__coefficients[0] )
-        if len( self.__coefficients ) > 1:
-            summands[1] = "{0} * x".format( self.__coefficients[1] ) 
+        if len( self.__coefficients ) > 0 and self.__coefficients[0]:
+            summands.insert( 0, str( self.__coefficients[0] ) )
+        if len( self.__coefficients ) > 1 and self.__coefficients[1]:
+            summands.insert( 1, "{0} * x".format( self.__coefficients[1] ) ) 
         
         return "( {0} )".format( " + ".join( reversed( summands ) ) )
         
