@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
+import sys
 import unittest
 
 from rings.integers.naive import IntegerRing
-from rings.polynomials.naive import PolynomialRing
 
-Z = IntegerRing()
-R = PolynomialRing( Z )
+def generate_test_classes(polynomialring_implementation, name_prefix):
+  """
+  Generate TestCase classes for the given finite field implementation
+  and add them to the module. This groups the tests by implementation
+  and category (instead of category alone) and allows flexible addition
+  and removal of implementations.
+  """
+
+  Z = IntegerRing()
+  R = polynomialring_implementation( Z )
 
 
-class ElementsTest(unittest.TestCase):
+  class ElementsTest(unittest.TestCase):
     """
     Test cases concerning the creation and comparison of polynomials
     """
@@ -62,7 +70,7 @@ class ElementsTest(unittest.TestCase):
 
         
 
-class ArithmeticTest(unittest.TestCase):
+  class ArithmeticTest(unittest.TestCase):
     """Test cases for arithmetic operations on polynomials"""
     # These tests rely on working equality comparison and
     # not all elements being zero.
@@ -134,6 +142,26 @@ class ArithmeticTest(unittest.TestCase):
     def test_pow_base(self):
         """Integer power base case"""
         self.assert_( R(1, 1)**2 == R(1, 2, 1) )    
+
+
+  
+  for test_class in [ ElementsTest, ArithmeticTest ]:
+      test_class.__name__ = "{0}_{1}".format( name_prefix, test_class.__name__ ) 
+      setattr( sys.modules[__name__], test_class.__name__, test_class )
+
+    
+#===============================================================================
+# Implementation importing and TestCase class generation
+#===============================================================================
+
+import rings.polynomials.naive
+
+implementations = [
+    (rings.polynomials.naive.PolynomialRing, "Naive"),
+]
+
+for implementation, prefix in implementations:
+    generate_test_classes( implementation, prefix )
 
     
 if __name__ == "__main__":

@@ -1,27 +1,35 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
+import sys
 import unittest
 
 from fields.finite.naive import FiniteField
-from elliptic_curves.naive import EllipticCurve, PointAtInfinity
+
+def generate_test_classes(curve_implementation, infinity_implementation,  \
+                          name_prefix):
+  """
+  Generate TestCase classes for the given implementations of elliptic curves
+  and the point at infinity; add them to the module. This groups the tests
+  by implementation and category (instead of category alone) and allows
+  flexible addition and removal of implementations.
+  """
+
+  # Test the implementation for one small and one large field. Large
+  # means that operands require more than 64 bit; the tenth Mersenne
+  # prime will do as field size.
+  F = FiniteField( 23 )
+  G = FiniteField( 2**89 - 1 )
+
+  # TODO: Add more test cases, especially larger ones
+  E1 = curve_implementation(F, 1, 0)
+  O = infinity_implementation()
 
 
-# Test the implementation for one small and one large field. Large
-# means that operands require more than 64 bit; the tenth Mersenne
-# prime will do as field size.
-F = FiniteField(23)
-G = FiniteField( 2**89 - 1 )
-
-# TODO: Add more test cases, especially larger ones
-E1 = EllipticCurve(F, 1, 0)
-O = PointAtInfinity()
+  # TODO: Add test cases for point creation (on the curve or not)
 
 
-# TODO: Add test cases for point creation (on the curve or not)
-
-
-class PointsTest(unittest.TestCase):
+  class PointsTest(unittest.TestCase):
     """
     Test cases for creating and comparing points on elliptic curves 
     """
@@ -51,7 +59,7 @@ class PointsTest(unittest.TestCase):
         self.failIf( E1(9, 5).is_infinite() )
 
 
-class GroupOperationTest(unittest.TestCase):
+  class GroupOperationTest(unittest.TestCase):
     """
     Test cases for the group operation on elliptic curves
     """
@@ -110,7 +118,7 @@ class GroupOperationTest(unittest.TestCase):
         self.assert_( 0 * E1(11, 10) == O )
         
 
-class PointAtInfinityTest(unittest.TestCase):
+  class PointAtInfinityTest(unittest.TestCase):
     """
     Test cases for the point at infinity
     """
@@ -143,5 +151,27 @@ class PointAtInfinityTest(unittest.TestCase):
         self.assert_( 7 * O == O)
 
 
+
+  for test_class in [ PointsTest, GroupOperationTest, PointAtInfinityTest ]:
+      test_class.__name__ = "{0}_{1}".format( name_prefix, test_class.__name__ ) 
+      setattr( sys.modules[__name__], test_class.__name__, test_class )
+
+
+#===============================================================================
+# Implementation importing and TestCase class generation
+#===============================================================================
+
+import elliptic_curves.naive
+
+implementations = [
+    ( elliptic_curves.naive.EllipticCurve,
+      elliptic_curves.naive.PointAtInfinity,
+      "Naive" ),
+]
+
+for curve_implementation, infinity_implementation, prefix in implementations:
+    generate_test_classes( curve_implementation, infinity_implementation, prefix )
+
+    
 if __name__ == "__main__":
     unittest.main()

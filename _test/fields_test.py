@@ -1,19 +1,25 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
+import sys
 import unittest
 
-from fields.finite.naive import FiniteField
+def generate_test_classes(finitefield_implementation, name_prefix):
+  """
+  Generate TestCase classes for the given finite field implementation
+  and add them to the module. This groups the tests by implementation
+  and category (instead of category alone) and allows flexible addition
+  and removal of implementations.
+  """
+
+  # Test the implementation for one small and one large field. Large
+  # means that operands require more than 64 bit; the tenth Mersenne
+  # prime will do as field size.
+  F = finitefield_implementation( 17 )
+  G = finitefield_implementation( 2**89 - 1 )
 
 
-# Test the implementation for one small and one large field. Large
-# means that operands require more than 64 bit; the tenth Mersenne
-# prime will do as field size.
-F = FiniteField(17)
-G = FiniteField( 2**89 - 1 )
-
-
-class ElementsTest(unittest.TestCase):
+  class ElementsTest(unittest.TestCase):
     """
     Test cases concerning the creation and comparison of
     elements of finite fields
@@ -22,7 +28,7 @@ class ElementsTest(unittest.TestCase):
     pass
 
 
-class ArithmeticTest(unittest.TestCase):
+  class ArithmeticTest(unittest.TestCase):
     """Test cases for arithmetic operations over finite fields"""
     # These tests rely on working equality comparison and
     # not all elements being zero.
@@ -122,7 +128,27 @@ class ArithmeticTest(unittest.TestCase):
         """Integer power with wrap-around"""
         self.assert_( F(15)**2 == F(4) )
         self.assert_( G(2**45)**2 == G(2) )
-    
+
+
+
+  for test_class in [ ElementsTest, ArithmeticTest ]:
+      test_class.__name__ = "{0}_{1}".format( name_prefix, test_class.__name__ ) 
+      setattr( sys.modules[__name__], test_class.__name__, test_class )
+
+
+#===============================================================================
+# Implementation importing and TestCase class generation
+#===============================================================================
+
+import fields.finite.naive
+
+implementations = [
+    (fields.finite.naive.FiniteField, "Naive"),
+]
+
+for implementation, prefix in implementations:
+    generate_test_classes( implementation, prefix )
+
     
 if __name__ == "__main__":
     unittest.main()
