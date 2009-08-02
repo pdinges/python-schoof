@@ -52,6 +52,10 @@ def generate_test_classes(polynomialring_implementation, name_prefix):
         self.assert_( R(0, 3) != R(2, 5) )
 
 
+    #- Test for zero ---------------------------------------------------------- 
+    # TODO: Implement
+    
+
     #- Degree ----------------------------------------------------------------- 
     def test_degree_base(self):
         """Degree base case"""
