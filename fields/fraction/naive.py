@@ -5,11 +5,9 @@ from fields.fraction import FractionField as SuperField
 
 class FractionField(SuperField):
     def __call__(self, numerator, denominator=None):
-        if isinstance(numerator, FormalQuotient):
-            if numerator.source_field() != self:
-                raise TypeError("formal quotient comes from a different field")
-            
-            return numerator
+        if isinstance(numerator, FormalQuotient)  \
+            and numerator.source_field() == self:
+                return numerator
         
         else:
             if not denominator:

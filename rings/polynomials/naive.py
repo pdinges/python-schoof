@@ -30,11 +30,9 @@ class PolynomialRing:
         Note that the list must be in ascending order: first the constant,
         then the linear, quadratic and cubic coefficients; and so on.
         """
-        if isinstance(element_description, ListPolynomial):
-            if element_description.source_ring() != self:
-                raise TypeError("polynomial comes from a different ring")
-            
-            return element_description
+        if isinstance(element_description, ListPolynomial)  \
+            and element_description.source_ring() == self:
+                return element_description
         
         else:
             if not hasattr(element_description, "__iter__"):

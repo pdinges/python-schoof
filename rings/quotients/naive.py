@@ -7,11 +7,9 @@ class QuotientRing:
         self._modulus = modulus
     
     def __call__(self, element_description):
-        if isinstance(element_description, GenericQuotientClass):
-            if element_description.source_ring() != self:
-                raise TypeError("quotient class comes from a different ring")
-            
-            return element_description
+        if isinstance(element_description, GenericQuotientClass)  \
+            and element_description.source_ring() == self:
+                return element_description
         
         return GenericQuotientClass( self, self._ring( element_description ) )
 
