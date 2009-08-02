@@ -24,10 +24,21 @@ class DefaultImplementationElement:
         return -self.__sub__( other )
     
     def __rmul__(self, other):
-        return self.__mul__(other)
+        return self.__mul__( other )
     
     def __truediv__(self, other):
-        return self.__mul__( other.multiplicative_inverse() )
+        if not other:
+            raise ZeroDivisionError
+        
+        try:
+            other = self.source_field()(other)
+            return self.__mul__( other.multiplicative_inverse() )
+        
+        except (TypeError, AttributeError):
+            return NotImplemented
+
+    def __rtruediv__(self, other):
+        return self.multiplicative_inverse() * other
 
     def __pow__(self, other):
         # This only makes sense for integer arguments.

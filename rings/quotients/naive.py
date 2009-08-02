@@ -108,6 +108,8 @@ class GenericQuotientClass(DefaultImplementationElement):
     
     
     def multiplicative_inverse(self):
+        if not self.__remainder:
+            raise ZeroDivisionError
         # Extended Euclidean algorithm, see Knuth, D. E.
         # "The Art of Computer Programming", volume 1, second edition, p.14
         # FIXME: Clean up this mess.

@@ -10,7 +10,7 @@ class FractionField(SuperField):
                 return numerator
         
         else:
-            if not denominator:
+            if denominator is None:
                 denominator = self._integral_domain.one()
             
             return FormalQuotient(
@@ -37,12 +37,17 @@ class FormalQuotient(DefaultImplementationElement):
     only; common factors will NOT be canceled out.
     """
     def __init__(self, fraction_field, numerator, denominator):
+        if not denominator:
+            raise ZeroDivisionError
         self.__source_field = fraction_field
         self.__numerator = numerator
         self.__denominator = denominator
     
     def source_field(self):
         return self.__source_field
+    
+    def __bool__(self):
+        return bool( self.__numerator )
     
     def __eq__(self, other):
         try:
@@ -92,6 +97,9 @@ class FormalQuotient(DefaultImplementationElement):
         return self.__class__( self.__source_field, numerator, denominator )
     
     def multiplicative_inverse(self):
+        if not self:
+            raise ZeroDivisionError
+        
         return self.__class__(
                     self.__source_field,
                     self.__denominator,
