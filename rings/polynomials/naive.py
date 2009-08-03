@@ -181,6 +181,10 @@ class ListPolynomial(DefaultImplementationElement):
                 self.__class__(self.__source_ring, remainder)
     
     
+    def __floordiv__(self, other):
+        return divmod(self, other)[0]
+
+    
     def __mod__(self, other):
         return divmod(self, other)[1]
     

@@ -26,6 +26,16 @@ class DefaultImplementationElement:
     def __rmul__(self, other):
         return self.__mul__(other)
     
+    def __rdivmod__(self, other):
+        # TODO: Factor casting into a single function. 
+        return divmod( self.source_ring()( other ), self )
+    
+    def __rfloordiv__(self, other):
+        return divmod( other, self )[0]
+    
+    def __rmod__(self, other):
+        return divmod( other, self )[1]
+    
     def __pow__(self, other):
         # This only makes sense for integer arguments.
         result = self

@@ -5,6 +5,7 @@ import sys
 import unittest
 
 from rings.integers.naive import IntegerRing
+from rings.polynomials.naive import PolynomialRing
 
 def generate_test_classes(fractionfield_implementation, name_prefix):
   """
@@ -14,9 +15,11 @@ def generate_test_classes(fractionfield_implementation, name_prefix):
   and removal of implementations.
   """
 
-  F = IntegerRing()
-  Q = fractionfield_implementation( F )
-
+  Z = IntegerRing()
+  P = PolynomialRing( Z )
+  
+  Q = fractionfield_implementation( Z )
+  F = fractionfield_implementation( P )
 
   class ElementsTest(unittest.TestCase):
     """
@@ -25,17 +28,31 @@ def generate_test_classes(fractionfield_implementation, name_prefix):
     """
     #- Creation --------------------------------------------------------------- 
     def test_create(self):
+        """Element creation"""
         self.assertIsNotNone( Q(0) )
         self.assertIsNotNone( Q(1, 1) )
     
-    def test_default_denominator(self):
+    def test_create_default_denominator(self):
+        """Element creation with default (unity) denominator"""
         self.assert_( Q(1) == Q(1, 1) )
         self.assert_( Q(3) == Q(3, 1) )
         
-    def test_zero_denominator(self):
+    def test_create_zero_denominator(self):
+        """Element creation with zero denominator raises exception"""
         def f():
             return Q(1, 0)
         self.assertRaises( ZeroDivisionError, f )
+    
+    def test_create_idempotent(self):
+        """Element creation accepts elements of the same field"""
+        self.assert_( Q(Q(1)) == Q(1) )
+        self.assert_( Q(Q(7, 13)) == Q(7, 13) )
+    
+    def test_create_uncastable(self):
+        """Element creation raises exception if uncastable"""
+        def f():
+            return Q( F(1) )
+        self.assertRaises( TypeError, f )
     
     
     #- Equality --------------------------------------------------------------- 
@@ -216,7 +233,7 @@ def generate_test_classes(fractionfield_implementation, name_prefix):
         """Division: automatic casting of divisor"""
         self.assert_( Q(1, 2) / 3 == Q(1, 6) )
     
-    def test_mul_casting_reversed(self):
+    def test_truediv_casting_reversed(self):
         """Division: automatic casting of dividend"""
         self.assert_( 3 / Q(2) == Q(3, 2) )
     
