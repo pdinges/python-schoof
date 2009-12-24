@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
-import sys
 import unittest
 
 from rings.integers.naive import IntegerRing
 from fields.finite.naive import FiniteField
 
-def generate_test_classes(polynomialring_implementation, name_prefix):
+def generate_test_suites(polynomialring_implementation, name_prefix):
   """
-  Generate TestCase classes for the given finite field implementation
-  and add them to the module. This groups the tests by implementation
+  Generate TestCase classes for the given ring of polynomials implementation
+  and combine them to a TestSuite. This groups the tests by implementation
   and category (instead of category alone) and allows flexible addition
   and removal of implementations.
   """
@@ -244,13 +243,15 @@ def generate_test_classes(polynomialring_implementation, name_prefix):
 
 
   
+  suites = []
   for test_class in [ ElementsTest, ArithmeticTest ]:
-      test_class.__name__ = "{0}_{1}".format( name_prefix, test_class.__name__ ) 
-      setattr( sys.modules[__name__], test_class.__name__, test_class )
+      test_class.__name__ = "{0}_{1}".format( name_prefix, test_class.__name__ )
+      suites.append( unittest.TestLoader().loadTestsFromTestCase( test_class ) ) 
+  return suites
 
     
 #===============================================================================
-# Implementation importing and TestCase class generation
+# Implementation importing and TestSuites generation
 #===============================================================================
 
 import rings.polynomials.naive
@@ -259,9 +260,11 @@ implementations = [
     (rings.polynomials.naive.PolynomialRing, "Naive"),
 ]
 
+all_suites = []
 for implementation, prefix in implementations:
-    generate_test_classes( implementation, prefix )
+    all_suites.extend( generate_test_suites( implementation, prefix ) )
 
-    
+
 if __name__ == "__main__":
-    unittest.main()
+    all_tests = unittest.TestSuite( all_suites )
+    unittest.TextTestRunner().run( all_tests )

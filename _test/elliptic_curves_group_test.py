@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
-import sys
 import unittest
 
 from fields.finite.naive import FiniteField
 
-def generate_test_classes(curve_implementation, infinity_implementation,  \
+def generate_test_suites(curve_implementation, infinity_implementation,  \
                           name_prefix):
   """
   Generate TestCase classes for the given implementations of elliptic curves
-  and the point at infinity; add them to the module. This groups the tests
+  and the point at infinity; combine them to TestSuites. This groups the tests
   by implementation and category (instead of category alone) and allows
   flexible addition and removal of implementations.
   """
@@ -152,13 +151,14 @@ def generate_test_classes(curve_implementation, infinity_implementation,  \
 
 
 
+  suites = []
   for test_class in [ PointsTest, GroupOperationTest, PointAtInfinityTest ]:
-      test_class.__name__ = "{0}_{1}".format( name_prefix, test_class.__name__ ) 
-      setattr( sys.modules[__name__], test_class.__name__, test_class )
-
+      test_class.__name__ = "{0}_{1}".format( name_prefix, test_class.__name__ )
+      suites.append( unittest.TestLoader().loadTestsFromTestCase( test_class ) ) 
+  return suites
 
 #===============================================================================
-# Implementation importing and TestCase class generation
+# Implementation importing and TestSuites generation
 #===============================================================================
 
 import elliptic_curves.naive
@@ -169,9 +169,17 @@ implementations = [
       "Naive" ),
 ]
 
+all_suites = []
 for curve_implementation, infinity_implementation, prefix in implementations:
-    generate_test_classes( curve_implementation, infinity_implementation, prefix )
+    all_suites.extend(
+            generate_test_suites(
+                    curve_implementation,
+                    infinity_implementation,
+                    prefix
+                )
+        )
 
-    
+
 if __name__ == "__main__":
-    unittest.main()
+    all_tests = unittest.TestSuite( all_suites )
+    unittest.TextTestRunner().run( all_tests )
