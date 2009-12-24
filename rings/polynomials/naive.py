@@ -27,18 +27,22 @@ class PolynomialRing:
         Create a new polynomial from the given description.
         
         Valid descriptions are:
-          - ListPolynomials (further_coefficients will be ignored)
+          - ListPolynomials over the same field
+            (further_coefficients will be ignored)
           - iterable objects that provides the list of coefficients
             (again, further_coefficients will be ignored)
           - any number of function arguments; they will be combined
             into the list of coefficients 
         
         Note that the list must be in ascending order: first the constant,
-        then the linear, quadratic and cubic coefficients; and so on.
+        then the linear, quadratic, and cubic coefficients; and so on.
         """
-        if isinstance(element_description, ListPolynomial)  \
-            and element_description.source_ring() == self:
+        if isinstance(element_description, ListPolynomial):
+            if element_description.source_ring() == self:
                 return element_description
+            else:
+                # Avoid automatic translation of coefficients
+                raise TypeError
         
         else:
             if not hasattr(element_description, "__iter__"):
@@ -62,9 +66,10 @@ class PolynomialRing:
         return name.format( self._coefficient_field )
 
 
-from rings import DefaultImplementationElement
+from rings import DefaultCommutativeElement
+from support.operators import ascertain_operand_set
 
-class ListPolynomial(DefaultImplementationElement):
+class ListPolynomial(DefaultCommutativeElement):
     """
     Polynomial with coefficients from a field.
 
@@ -94,15 +99,8 @@ class ListPolynomial(DefaultImplementationElement):
         return len( self.__coefficients ) > 0
     
     
+    @ascertain_operand_set( "source_ring" )
     def __eq__(self, other):
-        try:
-            # Ensure that the second operand is a polynomial 
-            other = self.__source_ring(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__eq__() instead.
-            return NotImplemented
-
         if self.degree() != other.degree():
             return False
         
@@ -112,17 +110,10 @@ class ListPolynomial(DefaultImplementationElement):
                 return False
 
         return True
+
     
-    
+    @ascertain_operand_set( "source_ring" )
     def __add__(self, other):
-        try:
-            # Ensure that the second operand is a polynomial 
-            other = self.__source_ring(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__radd__() instead.
-            return NotImplemented
-        
         zero = self.__source_ring.coefficient_field().zero()
         coefficient_pairs = self.__pad_and_zip(
                                     self.__coefficients,
@@ -132,7 +123,7 @@ class ListPolynomial(DefaultImplementationElement):
         coefficient_sums = [ x + y for x, y in coefficient_pairs ]
         return self.__class__( self.__source_ring, coefficient_sums )
     
-    
+        
     def __neg__(self):
         return self.__class__(
                     self.__source_ring,
@@ -140,15 +131,8 @@ class ListPolynomial(DefaultImplementationElement):
                 )
     
     
+    @ascertain_operand_set( "source_ring" )
     def __mul__(self, other):
-        try:
-            # Ensure that the second operand is a polynomial 
-            other = self.__source_ring(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__rmul__() instead.
-            return NotImplemented
-
         # Initialize result as list of all zeros
         zero = self.__source_ring.coefficient_field().zero()
         result = [ zero ] * (self.degree() + other.degree() + 2)
@@ -158,17 +142,10 @@ class ListPolynomial(DefaultImplementationElement):
                 result[i + j]  +=  x * y 
         
         return self.__class__( self.__source_ring, result )
-    
-    
-    def __divmod__(self, other):
-        try:
-            # Ensure that the second operand is a polynomial 
-            other = self.__source_ring(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__rdivmod__() instead.
-            return NotImplemented
 
+    
+    @ascertain_operand_set( "source_ring" )
+    def __divmod__(self, other):
         dividend = self.__coefficients[:]
         divisor = other.__coefficients[:]
         n = other.degree()
@@ -185,7 +162,7 @@ class ListPolynomial(DefaultImplementationElement):
         
         return self.__class__(self.__source_ring, quotient), \
                 self.__class__(self.__source_ring, remainder)
-    
+
     
     def __floordiv__(self, other):
         return divmod(self, other)[0]

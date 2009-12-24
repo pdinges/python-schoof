@@ -34,9 +34,10 @@ class QuotientRing:
         return GenericQuotientClass( self, self._ring.one() )
     
 
-from rings import DefaultImplementationElement
+from rings import DefaultCommutativeElement
+from support.operators import ascertain_operand_set
 
-class GenericQuotientClass(DefaultImplementationElement):
+class GenericQuotientClass(DefaultCommutativeElement):
     """
     Element from a quotient ring, that is, a congruence class modulo
     a ring element. It uses the canonical mapping to implement the
@@ -65,64 +66,39 @@ class GenericQuotientClass(DefaultImplementationElement):
     def modulus(self):
         return self.__source_ring.modulus()
 
+    @ascertain_operand_set( "source_ring" )
     def __eq__(self, other):
-        try:
-            # Ensure that the second operand is a quotient class 
-            other = self.__source_ring(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__eq__() instead.
-            return NotImplemented
-
-        return self.__remainder == other.__remainder
+        return self.__remainder == other.remainder()
 
     def __bool__(self):
         return bool( self.__remainder )
 
+    @ascertain_operand_set( "source_ring" )
     def __add__(self, other):
-#        try:
-#            if self.__source_ring == other.__source_ring:
-#                return self.__class__(
-#                                self.__source_ring,
-#                                self.__remainder + other.__remainder
-#                            )
-#        except AttributeError:
-#            return self + self.__source_ring( other )
-#        
-#        
-        try:
-            # Ensure that the second operand is a quotient class
-            other = self.__source_ring(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__radd__() instead.
-            return NotImplemented
-
         return self.__class__(
-                      self.__source_ring,
-                      self.__remainder + other.__remainder
-                  )
+                        self.__source_ring,
+                        self.__remainder + other.remainder()
+                    )
     
     def __neg__(self):
         return self.__class__( self.__source_ring, -self.__remainder )
 
+    @ascertain_operand_set( "source_ring" )
     def __mul__(self, other):
-        try:
-            # Ensure that the second operand is a quotient class 
-            other = self.__source_ring(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__rmul__() instead.
-            return NotImplemented
-
         return self.__class__(
-                      self.__source_ring,
-                      self.__remainder * other.__remainder
-                  )
+                        self.__source_ring,
+                        self.__remainder * other.remainder()
+                    )
 
+    # TODO: Add division operations that make sense.
+    #       Otherwise, move inversion to field element class.
+    @ascertain_operand_set( "source_ring" )
     def __truediv__(self, other):
         return self * other.multiplicative_inverse()
-    
+        
+    @ascertain_operand_set( "source_ring" )
+    def __rtruediv__(self, other):
+        return other * self.multiplicative_inverse()
     
     def multiplicative_inverse(self):
         if not self.__remainder:

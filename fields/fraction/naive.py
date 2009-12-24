@@ -27,6 +27,7 @@ class FractionField(SuperField):
     
     
 from fields import DefaultImplementationElement
+from support.operators import ascertain_operand_set
 
 class FormalQuotient(DefaultImplementationElement):
     """
@@ -49,28 +50,14 @@ class FormalQuotient(DefaultImplementationElement):
     def __bool__(self):
         return bool( self.__numerator )
     
+    @ascertain_operand_set( "source_field" )
     def __eq__(self, other):
-        try:
-            # Ensure that the second operand is a formal quotient 
-            other = self.__source_field(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__eq__() instead.
-            return NotImplemented
-
         # Use the basic definition of equivalence for comparison.
         return self.__numerator * other.__denominator \
                 == other.__numerator * self.__denominator
     
+    @ascertain_operand_set( "source_field" )
     def __add__(self, other):
-        try:
-            # Ensure that the second operand is a formal quotient 
-            other = self.__source_field(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__radd__() instead.
-            return NotImplemented
-
         numerator = self.__numerator * other.__denominator \
                     + self.__denominator * other.__numerator
         denominator = self.__denominator * other.__denominator
@@ -83,15 +70,8 @@ class FormalQuotient(DefaultImplementationElement):
                     self.__denominator
                 )
     
+    @ascertain_operand_set( "source_field" )
     def __mul__(self, other):
-        try:
-            # Ensure that the second operand is a formal quotient 
-            other = self.__source_field(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__rmul__() instead.
-            return NotImplemented
-
         numerator = self.__numerator * other.__numerator
         denominator = self.__denominator * other.__denominator
         return self.__class__( self.__source_field, numerator, denominator )

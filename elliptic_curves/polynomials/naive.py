@@ -53,8 +53,9 @@ class CurvePolynomialRing:
     
 
 import rings
+from support.operators import ascertain_operand_set
 
-class ReducedPolynomial(rings.DefaultImplementationElement):
+class ReducedPolynomial(rings.DefaultCommutativeElement):
     """
     Polynomials on an elliptic curve that automatically reduce powers of y.
     
@@ -76,32 +77,16 @@ class ReducedPolynomial(rings.DefaultImplementationElement):
     def y_factor(self):
         return self.__y_factor
     
+    @ascertain_operand_set( "source_ring" )
     def __eq__(self, other):
-        try:
-            # Ensure that the second operand is a reduced polynomial 
-            other = self.__source_ring(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__eq__() instead.
-            return NotImplemented
+        return self.__x_factor == other.x_factor() \
+                and self.__y_factor == other.y_factor() 
 
-        return self.__x_factor == other.__x_factor \
-                and self.__y_factor == other.__y_factor 
-
-
+    @ascertain_operand_set( "source_ring" )
     def __add__(self, other):
-        try:
-            # Ensure that the second operand is a reduced polynomial 
-            other = self.__source_ring(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__radd__() instead.
-            return NotImplemented
-
-        x = self.__x_factor + other.__x_factor
-        y = self.__y_factor + other.__y_factor
+        x = self.__x_factor + other.x_factor()
+        y = self.__y_factor + other.y_factor()
         return self.__class__( self.__source_ring, x, y )
-        
 
     def __neg__(self):
         return self.__class__(
@@ -110,55 +95,39 @@ class ReducedPolynomial(rings.DefaultImplementationElement):
                     -self.__y_factor
                 )
     
-    
+    @ascertain_operand_set( "source_ring" )
     def __mul__(self, other):
-        try:
-            # Ensure that the second operand is a reduced polynomial 
-            other = self.__source_ring(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__rmul__() instead.
-            return NotImplemented
-
-        x = self.__x_factor * other.__x_factor
-        xy = self.__x_factor * other.__y_factor
-        yx = self.__y_factor * other.__x_factor
+        x = self.__x_factor * other.x_factor()
+        xy = self.__x_factor * other.y_factor()
+        yx = self.__y_factor * other.x_factor()
         y = xy + yx
-        
+
         # Reduce y**2 to y2_reduction
-        if self.__y_factor and other.__y_factor:
+        if self.__y_factor and other.y_factor():
             #y = self.__y_factor - self.__y_factor # Zero of unknown type
-            x += self.__y_factor * other.__y_factor * self.__source_ring.y2_reduction()
+            x += self.__y_factor * other.y_factor() * self.__source_ring.y2_reduction()
 
         return self.__class__( self.__source_ring, x, y )
 
-
+    @ascertain_operand_set( "source_ring" )
     def __divmod__(self, other):
         if not other:
             raise ZeroDivisionError
         
-        try:
-            # Ensure that the second operand is a reduced polynomial 
-            other = self.__source_ring(other)
-        except TypeError:
-            # This class does not know how to handle the second operand;
-            # try other.__rdivmod__() instead.
-            return NotImplemented
-
         if not self:
-            return self.__source_ring.zero()
+            return self.__source_ring.zero(), self.__source_ring.zero()
         
-        if other.__y_factor and (self.__x_factor or other.__x_factor):
+        if other.y_factor() and (self.__x_factor or other.x_factor()):
             # Ok, this is cheating. Multivariate polynomial division is,
             # however, quite complicated and unnecessary for our purpose.
             raise ValueError("multivariate division is unsupported")
         
-        if other.__x_factor:
-            qx, rx = divmod( self.__x_factor, other.__x_factor )
-            qy, ry = divmod( self.__y_factor, other.__x_factor )
+        if other.x_factor():
+            qx, rx = divmod( self.__x_factor, other.x_factor() )
+            qy, ry = divmod( self.__y_factor, other.x_factor() )
         else:
             # Case: self and other have only y factors
-            qx, rx = divmod( self.__y_factor, other.__y_factor )
+            qx, rx = divmod( self.__y_factor, other.y_factor() )
             zero = self.__source_ring.zero().x_factor()
             qy, ry = zero, zero
             # s(x) / (y * t(x))  =
@@ -169,7 +138,6 @@ class ReducedPolynomial(rings.DefaultImplementationElement):
         remainder = self.__class__( self.__source_ring, rx, ry )
         
         return quotient, remainder
-
 
     def __floordiv__(self, other):
         return divmod(self, other)[0]
@@ -182,4 +150,3 @@ class ReducedPolynomial(rings.DefaultImplementationElement):
         result += " + " if self.__x_factor and self.__y_factor else ""
         result += "{0}".format(self.__x_factor) if self.__x_factor else ""
         return result
-
