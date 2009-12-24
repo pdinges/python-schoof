@@ -8,8 +8,8 @@ class EllipticCurve:
     def __init__(self, field, A, B):
         # TODO: Add assertion about field characteristic
         self.__field = field
-        self.__A = field(A)
-        self.__B = field(B)
+        self.__A = field( A )
+        self.__B = field( B )
 
     def __call__(self, x, y):
         return CartesianPoint( self, self.__field(x), self.__field(y) )
@@ -21,13 +21,12 @@ class EllipticCurve:
         return (self.__A, self.__B)
     
     def __str__(self):
-        msg = "elliptic curve with parameters A={A} and B={B} over {F}"
+        msg = "elliptic curve with parameters A='{A}' and B='{B}' over {F}"
         return msg.format( A = self.__A, B = self.__B, F = self.__field )
 
 
 # FIXME: Should points inherit from an abstract base class?
 #        That would make it complicated to mix in C++ classes.
-# FIXME: How to call this class?
 class CartesianPoint:
     """
     Point on an elliptic curve using cartesian coordinates as
@@ -42,7 +41,15 @@ class CartesianPoint:
         self.__curve = curve
         self.__x = x
         self.__y = y
-        
+    
+    def curve(self):
+        return self.__curve
+    
+    def x(self):
+        return self.__x
+    
+    def y(self):
+        return self.__y
         
     def __eq__(self, other):
         if other.is_infinite():
@@ -65,8 +72,7 @@ class CartesianPoint:
         else:
             if self.__x == other.__x:
                 A, B = self.__curve.parameters()
-                F = self.__curve.field()
-                l = (F(3) * self.__x ** 2  + A) / (F(2) * self.__y)
+                l = (3 * self.__x ** 2  + A) / (2 * self.__y)
             else:
                 l = (other.__y - self.__y) / (other.__x - self.__x)
 
@@ -84,17 +90,19 @@ class CartesianPoint:
         
         This method is used when self was the left factor.
         """
+        n = int(n)
         if n == 0:
             return PointAtInfinity()
         
         point = self
-        for i in range(1, int(n)):
+        for i in range(1, n):
             point += self 
         
         return point
     
     def __rmul__(self, other):
         """Multiplication with integers where self is the right factor"""
+        # Multiplication with integers is always commutative.
         return self * other
     
     def is_infinite(self):

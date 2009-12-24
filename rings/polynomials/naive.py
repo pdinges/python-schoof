@@ -16,6 +16,12 @@ class PolynomialRing:
     def coefficient_field(self):
         return self._coefficient_field
 
+    def __eq__(self, other):
+        return self is other or (  \
+                isinstance(other, self.__class__)  \
+                and self._coefficient_field == other._coefficient_field  \
+            )
+    
     def __call__(self, element_description, *further_coefficients):
         """
         Create a new polynomial from the given description.

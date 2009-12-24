@@ -11,6 +11,12 @@ class FractionField:
         # For example, see Robinson, Derek J. S., "Abstract Algebra", p. 113.
         self._integral_domain = integral_domain
         
+    def __eq__(self, other):
+        return self is other or (  \
+                isinstance(other, self.__class__)  \
+                and self._integral_domain == other._integral_domain  \
+            )
+    
     def __call__(self, numerator, denominator):
         raise NotImplementedError
     

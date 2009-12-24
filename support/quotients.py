@@ -32,6 +32,7 @@ def solve_congruence_equations( congruences ):
         common_representative += c.remainder() * neutralizer  \
                                     * inverse_modulo( neutralizer, c.modulus() )
     
+    # FIXME: This is not a field! Use QuotientRing.
     field = FiniteField( common_modulus )
     return field( common_representative )
 

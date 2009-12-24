@@ -6,6 +6,13 @@ class QuotientRing:
         self._ring = ring
         self._modulus = modulus
     
+    def __eq__(self, other):
+        return self is other or ( \
+                isinstance(other, self.__class__)  \
+                and self._ring == other._ring  \
+                and self._modulus == other._modulus  \
+            )
+    
     def __call__(self, element_description):
         if isinstance(element_description, GenericQuotientClass)  \
             and element_description.source_ring() == self:
@@ -73,6 +80,16 @@ class GenericQuotientClass(DefaultImplementationElement):
         return bool( self.__remainder )
 
     def __add__(self, other):
+#        try:
+#            if self.__source_ring == other.__source_ring:
+#                return self.__class__(
+#                                self.__source_ring,
+#                                self.__remainder + other.__remainder
+#                            )
+#        except AttributeError:
+#            return self + self.__source_ring( other )
+#        
+#        
         try:
             # Ensure that the second operand is a quotient class
             other = self.__source_ring(other)

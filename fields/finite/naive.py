@@ -14,8 +14,9 @@ class FiniteField(QuotientRing):
         self._power = int( power )
         
         if power > 1:
-            # TODO: Use the ring polynomials modulo an irreducible polynomial  
-            pass
+            # TODO: Use the ring of polynomials
+            #       modulo an irreducible polynomial  
+            raise NotImplementedError
         else:
             QuotientRing.__init__( self, IntegerRing(), characteristic )
 
@@ -25,6 +26,12 @@ class FiniteField(QuotientRing):
     def power(self):
         return self._power
 
+    def size(self):
+        return self._characteristic ** self._power
+    
+    def __iter__(self):
+        return elements(self)
+
     def __str__(self):
         if self._power > 1:
             count = "{0}^{1}".format( self._characteristic, self._power )
@@ -32,3 +39,8 @@ class FiniteField(QuotientRing):
             count = str( self._characteristic )
 
         return """Finite field of {0} elements""".format( count ) 
+
+
+def elements(field):
+    for i in range( 0, field.size() ):
+        yield field(i)
