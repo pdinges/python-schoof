@@ -2,43 +2,41 @@
 # $Id$
 
 from rings.quotients.naive import QuotientRing
-from rings.integers.naive import IntegerRing
+from rings.integers.naive import Integers
 
-class FiniteField(QuotientRing):
+class FiniteField(QuotientRing, _ring=Integers):
     """
     Finite field, naive implementation (currently limited to prime size).
     """
-    def __init__(self, characteristic, power = 1):
-        # TODO: Add assertions for primality and power
-        self._characteristic = int( characteristic )
-        self._power = int( power )
-        
-        if power > 1:
-            # TODO: Use the ring of polynomials
-            #       modulo an irreducible polynomial  
-            raise NotImplementedError
-        else:
-            QuotientRing.__init__( self, IntegerRing(), characteristic )
+    @classmethod
+    def __iter__(cls):
+        # FIXME: Does not work for the class object, only for instances.
+        return elements(cls)
 
-    def characteristic(self):
-        return self._characteristic
-
-    def power(self):
-        return self._power
-
-    def size(self):
-        return self._characteristic ** self._power
+    @classmethod
+    def characteristic(cls):
+        return cls._modulus
     
-    def __iter__(self):
-        return elements(self)
+    @classmethod
+    def power(cls):
+        return 1
+    
+    @classmethod
+    def size(cls):
+        return cls.characteristic() ** cls.power()
 
-    def __str__(self):
-        if self._power > 1:
-            count = "{0}^{1}".format( self._characteristic, self._power )
-        else:
-            count = str( self._characteristic )
+#    TODO: Make this a class description method.
+#    def __str__(self):
+#        if self._power > 1:
+#            count = "{0}^{1}".format( self.characteristic(), self.power() )
+#        else:
+#            count = str( self.characteristic() )
+#
+#        return """Finite field of {0} elements""".format( count ) 
 
-        return """Finite field of {0} elements""".format( count ) 
+    @classmethod
+    def elements(cls):
+        return [ cls(i) for i in range(0, cls.size()) ]
 
 
 def elements(field):

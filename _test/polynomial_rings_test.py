@@ -3,7 +3,7 @@
 
 import unittest
 
-from rings.integers.naive import IntegerRing
+from rings.integers.naive import Integers
 from fields.finite.naive import FiniteField
 
 def generate_test_suites(polynomialring_implementation, name_prefix):
@@ -14,7 +14,7 @@ def generate_test_suites(polynomialring_implementation, name_prefix):
   and removal of implementations.
   """
 
-  Z = IntegerRing()
+  Z = Integers
   F = FiniteField( 17 )
   # Strictly speaking, we assume the coefficients to come from a field.
   # Most things, however, should work equally well over the ring of integers.
@@ -422,7 +422,7 @@ def generate_test_suites(polynomialring_implementation, name_prefix):
 import rings.polynomials.naive
 
 implementations = [
-    (rings.polynomials.naive.PolynomialRing, "Naive"),
+    (rings.polynomials.naive.Polynomials, "Naive"),
 ]
 
 all_suites = []

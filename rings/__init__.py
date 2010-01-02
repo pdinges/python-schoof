@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
-class DefaultCommutativeElement:
+class CommutativeRing:
     """
     Base class for elements from a commutative ring; it provides default
     operator overloading.
@@ -34,8 +34,7 @@ class DefaultCommutativeElement:
         return self.__mul__( other )
 
     def __rdivmod__(self, other):
-        # TODO: Factor casting into a single function. 
-        return divmod( self.source_ring()( other ), self )
+        return divmod( self.__class__( other ), self )
     
     def __rfloordiv__(self, other):
         return divmod( other, self )[0]

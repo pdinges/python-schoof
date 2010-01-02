@@ -1,28 +1,23 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
-class PolynomialRing:
+from rings import CommutativeRing
+
+from support.types import template
+from support.operators import cast_operands
+
+@cast_operands
+class Polynomials( CommutativeRing, metaclass=template( "_coefficient_field" ) ):
     """
-    Ring of polynomials in one indeterminate with coefficients from the
+    Polynomial in one indeterminate with coefficients from the
     provided field.
     
     Requiring the coefficients to come from a field is an unnecessary
     specialization. However, it is sufficient for our purposes and allows
     for (simple) division.
     """    
-    def __init__(self, coefficient_field):
-        self._coefficient_field = coefficient_field
-    
-    def coefficient_field(self):
-        return self._coefficient_field
 
-    def __eq__(self, other):
-        return self is other or (  \
-                isinstance(other, self.__class__)  \
-                and self._coefficient_field == other._coefficient_field  \
-            )
-    
-    def __call__(self, element_description, *further_coefficients):
+    def __init__(self, element_description, *further_coefficients):
         """
         Create a new polynomial from the given description.
         
@@ -37,69 +32,33 @@ class PolynomialRing:
         Note that the list must be in ascending order: first the constant,
         then the linear, quadratic, and cubic coefficients; and so on.
         """
-        if isinstance(element_description, ListPolynomial):
-            if element_description.source_ring() == self:
-                return element_description
-            else:
-                # Avoid automatic translation of coefficients
-                raise TypeError
+        # List of coefficients is in ascending order without leading zeros.
+        # Example: x^2 + 2x + 5 = [5, 2, 1]
+        if isinstance(element_description, self.__class__):
+            # A reference suffices because objects are immutable
+            self.__coefficients = element_description.__coefficients
         
         else:
-            if not hasattr(element_description, "__iter__"):
-              coefficients = [ element_description ] + list(further_coefficients)  
-            else:
+            if type(element_description) in [ list, tuple ]:
                 coefficients = element_description
+            else:
+                coefficients = [ element_description ] + list(further_coefficients)  
 
             F = self._coefficient_field
-            return ListPolynomial( self, [ F(c) for c in coefficients ] )
-    
-    def zero(self):
-        return ListPolynomial( self, [ self._coefficient_field.zero() ] )
-    
-    def one(self):
-        return ListPolynomial( self, [ self._coefficient_field.one() ] )    
-    
-    def __str__(self):
-        # Requires the names of indeterminates and the field.
-        name  = """Ring of polynomials in one indeterminate """ \
-                + """with coefficients in the {0}"""
-        return name.format( self._coefficient_field )
+            self.__coefficients = [ F(c) for c in coefficients ]
 
-
-from rings import DefaultCommutativeElement
-from support.operators import ascertain_operand_set
-
-class ListPolynomial(DefaultCommutativeElement):
-    """
-    Polynomial with coefficients from a field.
-
-    The implementation emphasizes simplicity and omits all possible
-    speedups for simplicity and ease of understanding. It uses simple lists
-    to store the coefficients.
-    """
-    def __init__(self, polynomial_ring, coefficient_list):
-        # List of coefficients in ascending order without leading zeros.
-        # Example: x^2 + 2x + 5 = [5, 2, 1]
-        self.__source_ring = polynomial_ring
-        self.__coefficients = coefficient_list
         self.__remove_leading_zeros()
 
     
-    def source_ring(self):
-        return self.__source_ring
-    
-    
+    def coefficients(self):
+        return self.__coefficients[:]
+
+
     def degree(self):
         # FIXME: The degree of the zero polynomial is minus infinity.
         return len( self.__coefficients ) - 1
+
     
-    
-    def __bool__(self):
-        # At least one non-zero coefficient present
-        return len( self.__coefficients ) > 0
-    
-    
-    @ascertain_operand_set( "source_ring" )
     def __eq__(self, other):
         if self.degree() != other.degree():
             return False
@@ -111,46 +70,48 @@ class ListPolynomial(DefaultCommutativeElement):
 
         return True
 
-    
-    @ascertain_operand_set( "source_ring" )
+
+    def __bool__(self):
+        return bool( self.__coefficients )
+
+
     def __add__(self, other):
-        zero = self.__source_ring.coefficient_field().zero()
+        zero = self._coefficient_field.zero()
         coefficient_pairs = self.__pad_and_zip(
                                     self.__coefficients,
                                     other.__coefficients,
                                     zero
                                 )
         coefficient_sums = [ x + y for x, y in coefficient_pairs ]
-        return self.__class__( self.__source_ring, coefficient_sums )
+        return self.__class__( coefficient_sums )
     
-        
+    
     def __neg__(self):
         return self.__class__(
-                    self.__source_ring,
                     [ -c for c in self.__coefficients ]
                 )
     
     
-    @ascertain_operand_set( "source_ring" )
     def __mul__(self, other):
         # Initialize result as list of all zeros
-        zero = self.__source_ring.coefficient_field().zero()
+        zero = self._coefficient_field.zero()
+        # Add 2 because degrees count from 0.
         result = [ zero ] * (self.degree() + other.degree() + 2)
         
         for i, x in enumerate(self.__coefficients):
             for j, y in enumerate(other.__coefficients):
                 result[i + j]  +=  x * y 
         
-        return self.__class__( self.__source_ring, result )
+        return self.__class__( result )
 
-    
-    @ascertain_operand_set( "source_ring" )
+
     def __divmod__(self, other):
+        # Lists will be modified, so copy them
         dividend = self.__coefficients[:]
         divisor = other.__coefficients[:]
         n = other.degree()
         
-        zero = self.__source_ring.coefficient_field().zero()
+        zero = self._coefficient_field.zero()
         quotient = [ zero ] * (self.degree() - n + 1)
         
         for k in reversed(range( 0, len(quotient) )):
@@ -160,8 +121,8 @@ class ListPolynomial(DefaultCommutativeElement):
     
         remainder = dividend[ 0 : n ]
         
-        return self.__class__(self.__source_ring, quotient), \
-                self.__class__(self.__source_ring, remainder)
+        return self.__class__( quotient ), \
+                self.__class__( remainder )
 
     
     def __floordiv__(self, other):
@@ -199,6 +160,18 @@ class ListPolynomial(DefaultCommutativeElement):
         return "( {0} )".format( " + ".join( reversed( summands ) ) )
         
         
+    @classmethod
+    def zero(cls):
+        return cls( cls._coefficient_field.zero() )
+    
+    @classmethod
+    def one(cls):
+        return cls( cls._coefficient_field.one() )
+
+    @classmethod
+    def coefficient_field(cls):
+        return cls._coefficient_field
+
     @staticmethod
     def __pad_and_zip(list1, list2, padding_element):
         max_length = max( len(list1), len(list2) )

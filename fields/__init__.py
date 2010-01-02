@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
-class DefaultImplementationElement:
+class Field:
     """
     Base class for field elements that provides default operator overloading.
     
@@ -31,10 +31,10 @@ class DefaultImplementationElement:
             raise ZeroDivisionError
         
         try:
-            other = self.source_field()(other)
+            other = self.__class__(other)
             return self.__mul__( other.multiplicative_inverse() )
         
-        except (TypeError, AttributeError):
+        except TypeError:
             return NotImplemented
 
     def __rtruediv__(self, other):

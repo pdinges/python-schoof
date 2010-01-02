@@ -1,43 +1,13 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
-class QuotientRing:
-    def __init__(self, ring, modulus):
-        self._ring = ring
-        self._modulus = modulus
-    
-    def __eq__(self, other):
-        return self is other or ( \
-                isinstance(other, self.__class__)  \
-                and self._ring == other._ring  \
-                and self._modulus == other._modulus  \
-            )
-    
-    def __call__(self, element_description):
-        if isinstance(element_description, GenericQuotientClass)  \
-            and element_description.source_ring() == self:
-                return element_description
-        
-        return GenericQuotientClass( self, self._ring( element_description ) )
+from rings import CommutativeRing
 
-    def modulus(self):
-        return self._modulus
-    
-    def ring(self):
-        # TODO: Rename to representative_ring or something
-        return self._ring
-    
-    def zero(self):
-        return GenericQuotientClass( self, self._ring.zero() )
-        
-    def one(self):
-        return GenericQuotientClass( self, self._ring.one() )
-    
+from support.types import template
+from support.operators import cast_operands
 
-from rings import DefaultCommutativeElement
-from support.operators import ascertain_operand_set
-
-class GenericQuotientClass(DefaultCommutativeElement):
+@cast_operands
+class QuotientRing( CommutativeRing, metaclass=template( "_ring", "_modulus" ) ):
     """
     Element from a quotient ring, that is, a congruence class modulo
     a ring element. It uses the canonical mapping to implement the
@@ -51,52 +21,45 @@ class GenericQuotientClass(DefaultCommutativeElement):
       - multiplication (__mul__)
       - the division algorithm (__divmod__) 
     
-    The implementation emphasizes simplicity and omits all possible
+    The implementation emphasizes simplicity and omits possible
+    optimizations.
     """
-    def __init__(self, quotient_ring, representative):
-        self.__source_ring = quotient_ring
-        self.__remainder = representative % self.__source_ring.modulus()
-
-    def source_ring(self):
-        return self.__source_ring
+    def __init__(self, representative):
+        if isinstance( representative, self.__class__ ):
+            self.__remainder = representative.__remainder
+        elif isinstance( representative, self._modulus.__class__ ):
+            self.__remainder = representative % self._modulus
+        else:
+            m = self._modulus
+            self.__remainder = m.__class__( representative ) % m
 
     def remainder(self):
         return self.__remainder
     
-    def modulus(self):
-        return self.__source_ring.modulus()
-
-    @ascertain_operand_set( "source_ring" )
     def __eq__(self, other):
         return self.__remainder == other.remainder()
 
     def __bool__(self):
         return bool( self.__remainder )
 
-    @ascertain_operand_set( "source_ring" )
     def __add__(self, other):
         return self.__class__(
-                        self.__source_ring,
                         self.__remainder + other.remainder()
                     )
     
     def __neg__(self):
-        return self.__class__( self.__source_ring, -self.__remainder )
+        return self.__class__( -self.__remainder )
 
-    @ascertain_operand_set( "source_ring" )
     def __mul__(self, other):
         return self.__class__(
-                        self.__source_ring,
                         self.__remainder * other.remainder()
                     )
 
     # TODO: Add division operations that make sense.
     #       Otherwise, move inversion to field element class.
-    @ascertain_operand_set( "source_ring" )
     def __truediv__(self, other):
         return self * other.multiplicative_inverse()
         
-    @ascertain_operand_set( "source_ring" )
     def __rtruediv__(self, other):
         return other * self.multiplicative_inverse()
     
@@ -107,10 +70,10 @@ class GenericQuotientClass(DefaultCommutativeElement):
         # "The Art of Computer Programming", volume 1, second edition, p.14
         # FIXME: Clean up this mess.
         # TODO: Add assertions required for this algorithm to work.
-        annulating_scalar = self.__source_ring.ring().one()
-        previous_scalar = self.__source_ring.ring().zero()
+        annulating_scalar = self._ring.one()
+        previous_scalar = self._ring.zero()
         
-        c, d = self.__source_ring.modulus(), self.__remainder
+        c, d = self._modulus, self.__remainder
         
         quotient, remainder = divmod( c, d )
         
@@ -123,11 +86,27 @@ class GenericQuotientClass(DefaultCommutativeElement):
             
             quotient, remainder = divmod(c, d)
 
-        return self.__class__( self.__source_ring, annulating_scalar )
-
+        return self.__class__( annulating_scalar )
 
     def __str__(self):
         return "[{r} mod {m}]".format(
                 r = self.__remainder,
-                m = self.__source_ring.modulus()
+                m = self._modulus
             )
+
+
+    @classmethod
+    def modulus(cls):
+        return cls._modulus
+
+    @classmethod
+    def ring(cls):
+        return cls._ring
+    
+    @classmethod
+    def zero(cls):
+        return cls( cls._ring.zero() )
+    
+    @classmethod
+    def one(cls):
+        return cls( cls._ring.one() )

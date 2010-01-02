@@ -3,8 +3,8 @@
 
 import unittest
 
-from rings.integers.naive import IntegerRing
-from rings.polynomials.naive import PolynomialRing
+from rings.integers.naive import Integers
+from rings.polynomials.naive import Polynomials
 
 def generate_test_suites(fractionfield_implementation, name_prefix):
   """
@@ -14,8 +14,8 @@ def generate_test_suites(fractionfield_implementation, name_prefix):
   and removal of implementations.
   """
 
-  Z = IntegerRing()
-  P = PolynomialRing( Z )
+  Z = Integers
+  P = Polynomials( Z )
   
   Q = fractionfield_implementation( Z )
   F = fractionfield_implementation( P )
@@ -99,6 +99,7 @@ def generate_test_suites(fractionfield_implementation, name_prefix):
       
       
     #- Element source ---------------------------------------------------------
+    @unittest.skip("Test unnecessary in new architecture. type(Q(1)) == Q")
     def test_source_field(self):
         """Element source field"""
         self.assert_( Q(1).source_field() is Q )
