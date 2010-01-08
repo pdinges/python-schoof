@@ -1,49 +1,21 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
-class EllipticCurve:
-    """
-    Elliptic curve over a field of characteristic neither 2 nor 3
-    """
-    def __init__(self, field, A, B):
-        # TODO: Add assertion about field characteristic
-        self.__field = field
-        self.__A = field( A )
-        self.__B = field( B )
+from support.types import template
 
-    def __call__(self, x, y):
-        return CartesianPoint( self, self.__field(x), self.__field(y) )
-
-    def field(self):
-        return self.__field
-
-    def parameters(self):
-        return (self.__A, self.__B)
-    
-    def __str__(self):
-        msg = "elliptic curve with parameters A='{A}' and B='{B}' over {F}"
-        return msg.format( A = self.__A, B = self.__B, F = self.__field )
-
-
-# FIXME: Should points inherit from an abstract base class?
-#        That would make it complicated to mix in C++ classes.
-class CartesianPoint:
+class EllipticCurve( metaclass=template("_field", "_A", "_B") ):
     """
     Point on an elliptic curve using cartesian coordinates as
-    representation; supports additive notation for group operations 
+    representation; supports additive notation for group operations.
     """
-    def __init__(self, curve, x, y):
-        # FIXME: Move this assertion to the elliptic curve class?
-        A, B = curve.parameters()
+    def __init__(self, x, y):
+        self.__x = self._field( x )
+        self.__y = self._field( y )
+
+        A, B = self.parameters()
+        x, y = self.__x, self.__y
         assert y ** 2 == x ** 3  +  A * x  +  B, \
             "point ({x}, {y}) is not on the curve".format(x=x, y=y)
-
-        self.__curve = curve
-        self.__x = x
-        self.__y = y
-    
-    def curve(self):
-        return self.__curve
     
     def x(self):
         return self.__x
@@ -55,14 +27,13 @@ class CartesianPoint:
         if other.is_infinite():
             return False
         else:
-            return self.__x == other.__x and self.__y == other.__y
+            return self.__x == other.x() and self.__y == other.y()
     
     def __neq__(self, other):
         return not self == other
     
     def __neg__(self):
-        return self.__class__(self.__curve, self.__x, -self.__y)
-        #return self.__curve(self.__x, -self.__y)
+        return self.__class__(self.__x, -self.__y)
     
     def __add__(self, other):
         if other.is_infinite():
@@ -70,16 +41,16 @@ class CartesianPoint:
         elif self == -other:
             return PointAtInfinity()
         else:
-            if self.__x == other.__x:
-                A, B = self.__curve.parameters()
+            if self.__x == other.x():
+                A, B = self.parameters()
                 l = (3 * self.__x ** 2  + A) / (2 * self.__y)
             else:
-                l = (other.__y - self.__y) / (other.__x - self.__x)
+                l = (other.y() - self.__y) / (other.x() - self.__x)
 
-            u = -self.__x - other.__x +  l ** 2
+            u = -self.__x - other.x() +  l ** 2
             v = -self.__y - l * (u - self.__x)
             
-            return self.__class__(self.__curve, u, v)
+            return self.__class__(u, v)
     
     def __sub__(self, other):
         return self + (-other)
@@ -96,7 +67,7 @@ class CartesianPoint:
         
         point = self
         for i in range(1, n):
-            point += self 
+            point += self
         
         return point
     
@@ -110,8 +81,23 @@ class CartesianPoint:
     
     def __str__(self):
         return "({x}, {y})".format( x = self.__x, y = self.__y )
+    
+    @classmethod
+    def field(cls):
+        return cls._field
+    
+    @classmethod
+    def parameters(cls):
+        return (cls._A, cls._B)
+    
+
+#    TODO: Move class description to metaclass
+#    def __str__(self):
+#        msg = "elliptic curve with parameters A='{A}' and B='{B}' over {F}"
+#        return msg.format( A = self.__A, B = self.__B, F = self.__field )
 
 
+# TODO: Make this a singleton
 class PointAtInfinity:
     """
     Point at infinity on an elliptic curve, that is, the neutral element
@@ -122,15 +108,27 @@ class PointAtInfinity:
     """
     def __add__(self, other):
         return other
+
+    def __radd__(self, other):
+        return other
     
     def __sub__(self, other):
         return -other
+
+    def __rsub__(self, other):
+        return other
     
     def __mul__(self, other):
-        return self
+        if isinstance(other, int):
+            return self
+        else:
+            return NotImplemented
     
     def __rmul__(self, other):
-        return self
+        if isinstance(other, int):
+            return self
+        else:
+            return NotImplemented
     
     def __neg__(self):
         return self
