@@ -33,7 +33,7 @@ class TypeTemplate(type):
     
     def __new__(meta_class, class_name, bases, class_dict, **kw_arguments):
         """
-        Create a new type object (for example through a 'class' statement.
+        Create a new type object, for example through a 'class' statement.
         
         Behaves like a class method and is called before __init__().
         """
@@ -42,10 +42,25 @@ class TypeTemplate(type):
             # template. Therefore, derive a subclass from this meta-class
             # and make it create the actual type object.
             specialized_meta_class = meta_class.__specialize( kw_arguments )
+            # Base classes must have the same specialized meta-class.
+            specialized_bases = []
+            for base in bases:
+                if base.__class__ is meta_class:
+                    specialized_bases.append(
+                        specialized_meta_class.__new__(
+                                      specialized_meta_class,
+                                      base.__name__,
+                                      base.__bases__,
+                                      base.__dict__
+                              )
+                        )
+                else:
+                    specialized_bases.append( base )
+            
             return specialized_meta_class.__new__(
                               specialized_meta_class,
                               class_name,
-                              bases,
+                              tuple( specialized_bases ),
                               class_dict
                           )
         else:
@@ -72,9 +87,9 @@ class TypeTemplate(type):
         
         Note that this bends python's usual semantics: calling a template
         class may return types and instances, rather than always returning
-        an instance.
+        instances.
         """
-        unbound_parameters = self.__unbound_parameters() 
+        unbound_parameters = self.__unbound_parameters__ 
         if unbound_parameters:
             # There still are unbound parameters, so calling the type object
             # means specializing it.
@@ -107,24 +122,18 @@ class TypeTemplate(type):
             return type.__call__( self, *arguments, **kw_arguments )
 
             
-    # TODO: Add pretty names for template types.
-    # def __str__(self):
-    
-    
-    @classmethod
-    def __unbound_parameters(meta_class):
-        return tuple( [ p for p in meta_class.__parameters__
-                          if p not in meta_class.__parameter_map__.keys() ] )
-
     @classmethod
     def __specialize(meta_class, kw_arguments):
         """
         Derive a sub-template of the given template meta-class by setting
         template parameters.
-        """ 
-        if set( kw_arguments.keys() ) <= set( meta_class.__unbound_parameters() ):
+        """
+        unbound_parameters = meta_class.__unbound_parameters__
+        if set( kw_arguments.keys() ) <= set( unbound_parameters ):
             specialization_dict = meta_class.__dict__.copy()
-            specialization_dict[ "__parameters__" ] = getattr( meta_class, "__parameters__" ) 
+            specialization_dict[ "__parameters__" ] = getattr( meta_class, "__parameters__" )
+            remaining_parameters = [ p for p in unbound_parameters if p not in kw_arguments ]
+            specialization_dict[ "__unbound_parameters__" ] = tuple( remaining_parameters )
             specialization_dict[ "__parameter_map__" ] = getattr( meta_class, "__parameter_map__" ).copy() 
             specialization_dict[ "__parameter_map__" ].update( kw_arguments )
 
@@ -170,5 +179,8 @@ def template( *parameters ):
     """
     template_name = "TypeTemplate<{0}>".format( ", ".join( parameters ) )
     template_bases = tuple( [ TypeTemplate ] )
-    template_dict = { "__parameters__": parameters, "__parameter_map__": {} }
+    template_dict = {   "__parameters__": parameters,
+                        "__unbound_parameters__": parameters,
+                        "__parameter_map__": {}
+                     }
     return type( template_name, template_bases, template_dict )
