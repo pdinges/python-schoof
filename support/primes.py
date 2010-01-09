@@ -12,3 +12,12 @@ def primes_range(lower_bound, upper_bound):
             multiples = [ i*j for j in range(2, ceil(upper_bound / i)) ]
             primes -= set(multiples)
     return sorted(list( primes - set(range(2, lower_bound)) ))
+
+
+def inverse_primorial(n):
+    # FIXME: Start with 2.
+    product = 1
+    for prime in primes_range(3, n+1):
+        product *= prime
+        if product >= n:
+            return prime
