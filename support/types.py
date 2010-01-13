@@ -49,7 +49,7 @@ class TypeTemplate(type):
                     specialized_bases.append(
                         specialized_meta_class.__new__(
                                       specialized_meta_class,
-                                      base.__name__,
+                                      base.__plain_name__,
                                       base.__bases__,
                                       base.__dict__
                               )
