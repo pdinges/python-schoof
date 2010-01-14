@@ -54,7 +54,7 @@ binary_operation_names = [
    ]
 
 
-from .profiling import rename_code_object
+from .profiling import renamed_function
 
 def wrap_operation( operation ):
     # A function outside operation_casting_new()'s scope is required
@@ -73,9 +73,7 @@ def wrap_operation( operation ):
     # Rename code object to reflect the wrapped operation's name. Otherwise
     # the profile lists all wrapped operations as 'wrapped_operation'.
     new_name = "{op}_casting_wrapper".format( op = operation.__name__ )    
-    return rename_code_object(
+    return renamed_function(
                       wrapped_operation,
-                      operation.__code__.co_filename,
-                      new_name,
-                      operation.__code__.co_firstlineno
+                      new_name
                   )

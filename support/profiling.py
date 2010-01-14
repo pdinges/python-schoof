@@ -3,8 +3,28 @@
 
 import types
 
-def rename_code_object( function, filename, name, firstlineno ):
+def renamed_function( function, name, filename=None, firstlineno=-1 ):
+    """
+    Return a copy of 'function' whose associated code object
+    is named 'name'.
+    
+    This is handy when using the 'profile' and 'cProfile' modules:
+    both retrieve the function names from the code object
+    (the 'co_name' attribute); '__name__' is ignored.
+    """
+    # Renaming a function in the profile thus requires generating a new
+    # code object. As CodeType.__doc__ notes, this is not for the
+    # faint of heart.
+    if not type( function ) in ( types.FunctionType, types.MethodType ):
+        message = "expected function to be of function or method type (got {0})"
+        raise ValueError( message.format( function ) )
+    
     code = function.__code__
+    if filename is None:
+        filename = code.co_filename
+    if firstlineno == -1:
+        firstlineno = code.co_firstlineno
+    
     renamed_code = types.CodeType(
                       code.co_argcount,
                       code.co_kwonlyargcount,
@@ -30,10 +50,12 @@ def rename_code_object( function, filename, name, firstlineno ):
                           function.__defaults__,
                           function.__closure__
                       )
-    if type( function ) is types.FunctionType:
-        return renamed_function
-    elif type( function ) is types.MethodType:
+    
+    # Re-bind methods to their instance
+    if type( function ) is types.MethodType:
         return types.MethodType( renamed_function, function.__self__)
+
+    return renamed_function
 
 
 def prefix_operations(cls):
@@ -61,11 +83,9 @@ def prefix_operations(cls):
                 continue
 
             new_name = "{cls}::<meta>{op}".format( cls = __profiling_str(class_object), op = operation_name )
-            setattr(class_object.__class__, operation_name, rename_code_object(
+            setattr(class_object.__class__, operation_name, renamed_function(
                                            operation,
-                                           operation.__code__.co_filename,
-                                           new_name,
-                                           operation.__code__.co_firstlineno
+                                           new_name
                                         )
                                     )
 
@@ -75,11 +95,9 @@ def prefix_operations(cls):
                 continue
         
             new_name = "{cls}::{op}".format( cls = __profiling_str(class_object), op = operation_name )
-            setattr(class_object, operation_name, rename_code_object(
+            setattr(class_object, operation_name, renamed_function(
                                            operation,
-                                           operation.__code__.co_filename,
-                                           new_name,
-                                           operation.__code__.co_firstlineno
+                                           new_name
                                         )
                                     )
         setattr( class_object, "__operation_renaming__", True )
