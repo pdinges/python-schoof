@@ -6,8 +6,11 @@ from rings.polynomials.naive import Polynomials
 
 from support.types import template
 from support.operators import cast_operands
+from support.profiling import profiling_name, prefix_operations
 
 @cast_operands
+@prefix_operations
+@profiling_name( "{_elliptic_curve}[x,y]" )
 class CurvePolynomials( CommutativeRing, metaclass=template("_elliptic_curve") ):
     # Just some bivariate polynomials on the curve. The reduction is
     # an implementation detail.

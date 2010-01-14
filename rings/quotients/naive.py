@@ -5,8 +5,14 @@ from rings import CommutativeRing
 
 from support.types import template
 from support.operators import cast_operands
+from support.profiling import profiling_name, prefix_operations
+
+# FIXME: Having ring and modulus as parameters is redundant. Obviously we have
+#        ring == modulus.__class__ 
 
 @cast_operands
+@prefix_operations
+@profiling_name( "{_ring}/{_modulus}" )
 class QuotientRing( CommutativeRing, metaclass=template( "_ring", "_modulus" ) ):
     """
     Element from a quotient ring, that is, a congruence class modulo

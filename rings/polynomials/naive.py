@@ -5,8 +5,11 @@ from rings import CommutativeRing
 
 from support.types import template
 from support.operators import cast_operands
+from support.profiling import profiling_name, prefix_operations
 
 @cast_operands
+@prefix_operations
+@profiling_name( "{_coefficient_field}[x]")
 class Polynomials( CommutativeRing, metaclass=template( "_coefficient_field" ) ):
     """
     Polynomial in one indeterminate with coefficients from the

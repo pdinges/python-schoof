@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
+from support.profiling import profiling_name
+
+@profiling_name("Z")
 class Integers(int):
     """
     Ring of integers.

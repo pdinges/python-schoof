@@ -3,7 +3,9 @@
 
 from rings.quotients.naive import QuotientRing
 from rings.integers.naive import Integers
+from support.profiling import profiling_name
 
+@profiling_name("GF<{_modulus}>")
 class FiniteField(QuotientRing, _ring=Integers):
     """
     Finite field, naive implementation (currently limited to prime size).

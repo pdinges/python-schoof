@@ -2,7 +2,10 @@
 # $Id$
 
 from support.types import template
+from support.profiling import profiling_name, prefix_operations
 
+@prefix_operations
+@profiling_name( "E<{_field}>" )
 class EllipticCurve( metaclass=template("_field", "_A", "_B") ):
     """
     Point on an elliptic curve using cartesian coordinates as
