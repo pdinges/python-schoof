@@ -4,11 +4,11 @@
 from rings import CommutativeRing
 
 from support.types import template
-from support.operators import cast_operands
-from support.profiling import profiling_name, prefix_operations
+from support.operators import operand_casting
+from support.profiling import profiling_name, local_method_names
 
-@cast_operands
-@prefix_operations
+@operand_casting
+@local_method_names
 @profiling_name( "{_coefficient_field}[x]")
 class Polynomials( CommutativeRing, metaclass=template( "_coefficient_field" ) ):
     """

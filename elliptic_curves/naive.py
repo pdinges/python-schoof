@@ -2,9 +2,9 @@
 # $Id$
 
 from support.types import template
-from support.profiling import profiling_name, prefix_operations
+from support.profiling import profiling_name, local_method_names
 
-@prefix_operations
+@local_method_names
 @profiling_name( "E<{_field}>" )
 class EllipticCurve( metaclass=template("_field", "_A", "_B") ):
     """

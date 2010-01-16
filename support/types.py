@@ -1,6 +1,26 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
+def template( *parameters ):
+    """
+    Factory function to create template meta-classes.
+    
+    Usage example:
+      class C(metaclass=template("a", "b")): pass
+    """
+    template_name = "TypeTemplate<{0}>".format( ", ".join( parameters ) )
+    template_bases = tuple( [ TypeTemplate ] )
+    template_dict = {   "__parameters__": parameters,
+                        "__unbound_parameters__": parameters,
+                        "__parameter_map__": {}
+                     }
+    return type( template_name, template_bases, template_dict )
+
+
+def is_incomplete( class_object ):
+    return getattr( class_object.__class__, "__unbound_parameters__", False )
+
+
 class TypeTemplate(type):
     """
     A template meta-class prototype; use function template() to create
@@ -167,20 +187,3 @@ class TypeTemplate(type):
                 parameter_strings.append( p )
                 
         return "{0}<{1}>".format( class_name, ", ".join( parameter_strings ) )
-    
-    
-
-def template( *parameters ):
-    """
-    Factory function to create template meta-classes.
-    
-    Usage example:
-      class C(metaclass=template("a", "b")): pass
-    """
-    template_name = "TypeTemplate<{0}>".format( ", ".join( parameters ) )
-    template_bases = tuple( [ TypeTemplate ] )
-    template_dict = {   "__parameters__": parameters,
-                        "__unbound_parameters__": parameters,
-                        "__parameter_map__": {}
-                     }
-    return type( template_name, template_bases, template_dict )

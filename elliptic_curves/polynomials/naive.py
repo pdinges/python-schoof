@@ -5,11 +5,11 @@ from rings import CommutativeRing
 from rings.polynomials.naive import Polynomials
 
 from support.types import template
-from support.operators import cast_operands
-from support.profiling import profiling_name, prefix_operations
+from support.operators import operand_casting
+from support.profiling import profiling_name, local_method_names
 
-@cast_operands
-@prefix_operations
+@operand_casting
+@local_method_names
 @profiling_name( "{_elliptic_curve}[x,y]" )
 class CurvePolynomials( CommutativeRing, metaclass=template("_elliptic_curve") ):
     # Just some bivariate polynomials on the curve. The reduction is
