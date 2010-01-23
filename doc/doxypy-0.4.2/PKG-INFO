@@ -1,0 +1,19 @@
+Metadata-Version: 1.0
+Name: doxypy
+Version: 0.4.2
+Summary: 
+doxypy is an input filter for Doxygen. It preprocesses python
+files so that docstrings of classes and functions are reformatted
+into Doxygen-conform documentation blocks.
+
+Home-page: http://code.foosel.org/doxypy
+Author: Philippe Neumann & Gina Haeussge
+Author-email: doxypy@demod.org
+License: GPL v2
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development :: Documentation
