@@ -197,7 +197,7 @@ def __unwrap( method ):
 
 def __profiling_str(obj):
     # FIXME: Endless recursion for cyclic dependencies.
-    if hasattr(obj, "__profiling_name__"):
+    if isinstance(obj, type) and hasattr(obj, "__profiling_name__"):
         if hasattr( obj.__class__, "__parameter_map__" ):
             args = [ (k, __profiling_str(v)) for k,v in obj.__class__.__parameter_map__.items() ]
         else:

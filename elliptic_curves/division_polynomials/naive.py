@@ -9,7 +9,26 @@ class DivisionPolynomialsList:
     and caches the results.
     """
     def __init__(self, curve_polynomials):
-        self.__curve_polynomials = curve_polynomials
+        class DivisionPolynomials( curve_polynomials ):
+            """
+            DivisionPolynomials are specific instances of polynomials on the
+            curve.  They grow quadratically in degree, which clutters their
+            string representation.  Instead of printing the coefficients,
+            print the customary 'psi[l]' where l is the polynomial's index.
+            """
+            def __str__(self):
+                # The leading coefficient equals the torsion.  Using quotient
+                # classes is not a problem: first of all, they should not
+                # appear in realistic use cases.
+                # Second, adding a point m-times to itself for m > p, where p
+                # denotes the field characteristic, is the same as adding it
+                # m % p times to itself.  Therefore, the m-th division
+                # polynomial must equal the (m % p)-th division polynomial. 
+                return "psi[{0}]".format(
+                             self.leading_coefficient().remainder()
+                         )
+        self.__curve_polynomials = DivisionPolynomials
+        
         # __psi is the cache of division polynomials.
         self.__psi = None
     

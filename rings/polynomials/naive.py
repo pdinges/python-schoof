@@ -57,8 +57,18 @@ class Polynomials( CommutativeRing, metaclass=template( "_coefficient_field" ) )
         return self.__coefficients[:]
 
 
+    def leading_coefficient(self):
+        if self.__coefficients:
+            return self.__coefficients[-1]
+        else:
+            return self._coefficient_field.zero()
+
+
     def degree(self):
-        # FIXME: The degree of the zero polynomial is minus infinity.
+        if not self.__coefficients:
+            # FIXME: The degree of the zero polynomial is minus infinity.
+            #        This will, however, do for now.
+            return -( 2**30 )
         return len( self.__coefficients ) - 1
 
     

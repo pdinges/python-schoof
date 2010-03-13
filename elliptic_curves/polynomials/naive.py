@@ -42,6 +42,13 @@ class CurvePolynomials( CommutativeRing, metaclass=template("_elliptic_curve") )
     def y_factor(self):
         return self.__y_factor
     
+    def leading_coefficient(self):
+        # Equality is impossible: we compare an odd and an even number.
+        if (2 * self.__x_factor.degree()) > (3 + 2*self.__y_factor.degree()):
+            return self.__x_factor.leading_coefficient()
+        else:
+            return self.__y_factor.leading_coefficient()
+    
     def __eq__(self, other):
         return self.__x_factor == other.x_factor() \
                 and self.__y_factor == other.y_factor() 
