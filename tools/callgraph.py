@@ -23,7 +23,7 @@ class CallGraph:
     operations that are difficult to express in the list-sorting style
     of @c pstats.Stats. Examples of such operations are pruning of execution
     branches with treat_as_builtin(), and merging of nodes with
-    treat_as_inline().
+    treat_as_inlined().
     
     Multiple @c pstats.Stats objects can be merged into a single call graph
     by invoking add() several times.
@@ -35,8 +35,8 @@ class CallGraph:
         """
         Constructs a CallGraph from the given @p stats object.
         
-        @param[in]    stats    The @c pstats.Stats compatible object whose
-                               data is to be represented as the new CallGraph.
+        @param     stats    The @c pstats.Stats compatible object whose
+                            data is to be represented as the new CallGraph.
         """
         # Function -> ( Outgoing Calls, Incoming Calls )
         self.__functions = {}
