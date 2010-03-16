@@ -10,7 +10,7 @@ class CallgrindProfile:
     See "Callgrind Format Specification" in the Valgrind documentation at
     http://www.valgrind.org/docs/manual/cl-format.html  (Jan. 26, 2010)
     
-    Inspired by David Allouche et al.'s 'lsprofcalltree.py' script.
+    Inspired by the 'lsprofcalltree.py' script by David Allouche et al.
     """
     def __init__(self, callgraph):
         self.__callgraph = callgraph
@@ -25,14 +25,13 @@ class CallgrindProfile:
         
         
     def _print_summary(self, file):
-        cumulative_times = [ f.cumulative_time() for f in self.__callgraph ]
-        total_time = int( reduce( max, cumulative_times, 0 ) * 1000 )
+        total_time = int( self.__callgraph.total_time() * 1000 )
         print( "summary: {0:d}".format( total_time ), file=file )
         
         
     def _print_function(self, function, file):
         print( "fi={0:s}".format( function.filename() ), file=file )
-        print( "fn={0:s}".format( function.name() ), file=file )
+        print( "fn={0:s}".format( self._absolute_name( function ) ), file=file )
         
         inline_time = int( function.inline_time() * 1000 )
         cost_data = ( function.line_number(), inline_time )
@@ -44,16 +43,23 @@ class CallgrindProfile:
             
     def _print_call(self, call, file):
         callee = call.callee()
-        print( "cfn={0:s}".format( callee.name() ), file=file )
+        print( "cfn={0:s}".format( self._absolute_name( callee ) ), file=file )
         print( "cfi={0:s}".format( callee.filename() ), file=file )
         
-        calls_data = ( call.total_calls(), callee.line_number() )
+        calls_data = ( call.total_callcount(), callee.line_number() )
         print( "calls={0:d} {1:d}".format( *calls_data ), file=file )
         
         cumulative_time = int( call.cumulative_time() * 1000 )
         cost_data = ( call.caller().line_number(), cumulative_time )
         print( "{0:d} {1:d}".format( *cost_data ), file=file )
     
+    @staticmethod
+    def _absolute_name(function):
+        if function.namespace():
+            return "{0:s}::{1:s}".format( function.namespace(), function.name() )
+        else:
+            return function.name()
+
 
 import optparse
 import os.path
@@ -85,12 +91,9 @@ def main(arguments):
     profile_name = arguments[ 0 ]
     
     if not options.output_name:
-        path = os.path.split( profile_name )
-        if len(path) == 1:
-            path = tuple() + path
-        file_name = "callgrind.out.{0}".format( path[ -1 ] )
-        path_name = os.path.join( *path[ :-1 ])
-        options.output_name = os.path.join( path_name, file_name) 
+        file_name = "callgrind.out.{0}".format( os.path.basename( profile_name ) )
+        directory = os.path.dirname( profile_name )
+        options.output_name = os.path.join( directory, file_name ) 
         
     if os.path.exists( options.output_name ):
         message = "ERROR: Output file '{0}' already exists. Aborting."
@@ -101,7 +104,7 @@ def main(arguments):
         stats = pstats.Stats( profile_name )
     except IOError as error:
         message = "ERROR: Could not open profile file.\nReason: {0}"
-        print( message.format( error), file=sys.stderr )
+        print( message.format( error ), file=sys.stderr )
         return 1
          
     callgraph = CallGraph( stats )
@@ -115,7 +118,7 @@ def main(arguments):
     
     except IOError as error:
         message = "ERROR: Could not store the output.\nReason: {0}"
-        print( message.format( error), file=sys.stderr )
+        print( message.format( error ), file=sys.stderr )
         return 1
 
 
