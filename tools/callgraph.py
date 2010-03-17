@@ -58,9 +58,6 @@ class CallGraph:
         and line number: only if all three are identical will functions be
         considered the same and their profiles combined.
         
-        @todo   Combining calling statistics has yet to be implemented.
-                Currently, parallel arcs will be created.
-        
         @param     stats    The @c pstats.Stats compatible object whose
                             data is to be added to the CallGraph.
         """
@@ -74,10 +71,12 @@ class CallGraph:
                 caller = self._setdefault_function( caller_fln )
                 self._add_call( caller, function, *caller_data )
             
-            # The root function has no incoming calls to store its timing.
+            # The root function has no incoming calls to store its data.
             if not caller_dict:
-                inline_time = data[2]
-                function.add_inline_time( inline_time )
+                function.add_primitive_callcount( data[0] )
+                function.add_total_callcount( data[1] )
+                function.add_inline_time( data[2] )
+                # Cumulative time is calculated from outgoing calls.
                 
 
 
@@ -153,11 +152,12 @@ class CallGraph:
         
         @param     function    The Function to hide.
         """
-        # TODO Add call counts
         for call in function.incoming_calls():
             call.caller().add_inline_time( call.cumulative_time() )
         for call in function.outgoing_calls():
             call.callee().add_inline_time( call.inline_time() )
+            call.callee().add_primitive_callcount( call.primitive_callcount() )
+            call.callee().add_total_callcount( call.total_callcount() )
         self._remove_function( function )
 
 
@@ -192,6 +192,70 @@ class CallGraph:
                       )
         self._remove_function( function )
 
+
+    def treat_as_same(self, function_a, function_b, result_name=None ):
+        """
+        Merge two Functions, pretending that both represent the same function.
+        
+        This method can help to simplify profiles with functions in many
+        different namespaces.
+        
+        The method removes both functions from the graph and creates a new
+        one that represents their combination. All incoming and outgoing
+        calls to @p function_a and @p function_b will be combined into
+        incoming and outgoing calls of the merged function. The execution
+        times and call counts will be summed up if parallels arise.
+        
+        @todo      Preserve offsets for the inline execution time and call
+                   counts.
+                 
+        @return    The merged Function.
+        """
+        if not result_name:
+            result_name = function_a.absolute_name() + "*"
+        
+        merged_function = self._add_function( ("<merge>", 0, result_name) )
+        # FIXME Add inline time and call count offsets.
+
+        # Merge incoming calls; _add_call merges parallel calls
+        incoming_calls = function_a.incoming_calls().union(
+                                   function_b.incoming_calls()
+                               )
+        for call in incoming_calls:
+            self._add_call(
+                   call.caller(),
+                   merged_function,
+                   call.primitive_callcount(),
+                   call.total_callcount(),
+                   call.inline_time(),
+                   call.cumulative_time()
+               )
+            self._remove_call( call )
+
+        # Merge outgoing calls
+        outgoing_calls = function_a.outgoing_calls().union(
+                                   function_b.outgoing_calls()
+                               ) 
+        for call in outgoing_calls:
+            self._add_call(
+                   merged_function,
+                   call.callee(),
+                   call.primitive_callcount(),
+                   call.total_callcount(),
+                   call.inline_time(),
+                   call.cumulative_time()
+               )
+            self._remove_call( call )
+
+        assert not function_a.incoming_calls()
+        assert not function_a.outgoing_calls()
+        assert not function_b.incoming_calls()
+        assert not function_b.outgoing_calls()
+        self._remove_function( function_a )
+        self._remove_function( function_b )
+        
+        return merged_function
+    
     
     def _setdefault_function(self, file_line_name):
         """
@@ -268,7 +332,7 @@ class CallGraph:
         function._invalidate()
 
         
-    def _add_call(self, caller, callee, primitive_calls, total_calls, inline_time, cumulative_time ):
+    def _add_call(self, caller, callee, primitive_callcount, total_callcount, inline_time, cumulative_time ):
         """
         Add a Call to the graph with the given profiling data between @p caller
         and @p callee.
@@ -277,13 +341,28 @@ class CallGraph:
         
         @see Call for a description of parameters.
         """
-        # TODO Prevent parallel edges
-        call = Call( self,
-                     primitive_calls,
-                     total_calls,
-                     inline_time,
-                     cumulative_time
-                 )
+        existing_calls = caller.outgoing_calls().intersection(
+                                                 callee.incoming_calls()
+                                             )
+        assert len( existing_calls ) <= 1, \
+               "call graph contains parallel Calls"
+        
+        if existing_calls:
+            ec = existing_calls.pop()
+            call = Call( self,
+                         primitive_callcount + ec.primitive_callcount(),
+                         total_callcount + ec.total_callcount(),
+                         inline_time + ec.inline_time(),
+                         cumulative_time + ec.cumulative_time()
+                     )
+            self._remove_call( ec )
+        else:
+            call = Call( self,
+                         primitive_callcount,
+                         total_callcount,
+                         inline_time,
+                         cumulative_time
+                     )
         self.__calls[ call ] = ( caller, callee )
         self._outgoing_calls( caller ).add( call )
         self._incoming_calls( callee ).add( call )
@@ -428,7 +507,7 @@ class Function( CallGraphNode ):
     
     @see Call and CallGraph
     """
-    def __init__(self, callgraph, filename, line_number, name, inline_time_offset=0):
+    def __init__(self, callgraph, filename, line_number, name):
         """
         Construct a new Function without connections.
         
@@ -453,7 +532,9 @@ class Function( CallGraphNode ):
             self.__namespace, self.__name = name.rsplit( "::", 1 )
         else:
             self.__namespace, self.__name = "", name
-        self.__inline_time_offset = inline_time_offset
+        self.__inline_time_offset = 0
+        self.__primitive_callcount_offset = 0
+        self.__total_callcount_offset = 0
 
     def filename(self):
         """
@@ -499,6 +580,22 @@ class Function( CallGraphNode ):
         @see __init__()
         """
         return self.__namespace
+    
+    def absolute_name(self):
+        """
+        Get the represented function's name, complete with namespace.
+        
+        This is the @c name entry of a @c (file_name, line_number, name)
+        triple from @c pstats.Stats.
+        
+        @return    Namespace and name of the represented function.
+        
+        @see __init__()
+        """
+        if self.__namespace:
+            return "{0:s}::{1:s}".format( self.__namespace, self.__name )
+        else:
+            return self.__name
     
     def inline_time(self):
         """
@@ -551,7 +648,9 @@ class Function( CallGraphNode ):
         invocations via recursive loops.
         
         Call counts are added up over all execution paths. Use incoming_calls()
-        to access information of a specific invocation.
+        to access information of a specific invocation. If you plan to remove
+        calls from the graph and nevertheless want to preserve the call count,
+        use add_primitive_callcount() to introduce an offset.
         
         This method raises a ValueError if the Function is no longer part of
         its owning CallGraph; see CallGraphNode.
@@ -563,7 +662,7 @@ class Function( CallGraphNode ):
                    loops.
         """ 
         incoming_callcounts = [ c.primitive_callcount() for c in self.incoming_calls() ]
-        return reduce( add, incoming_callcounts, 0 )
+        return reduce( add, incoming_callcounts, self.__primitive_callcount_offset )
     
     def total_callcount(self):
         """
@@ -571,7 +670,9 @@ class Function( CallGraphNode ):
         invocations via recursive loops.
         
         Call counts are added up over all execution paths. Use incoming_calls()
-        to access information of a specific invocation.
+        to access information of a specific invocation. If you plan to remove
+        calls from the graph and nevertheless want to preserve the call count,
+        use add_total_callcount() to introduce an offset.
         
         This method raises a ValueError if the Function is no longer part of
         its owning CallGraph; see CallGraphNode.
@@ -582,7 +683,7 @@ class Function( CallGraphNode ):
         @return    How often the function was called.
         """ 
         incoming_callcounts = [ c.total_callcount() for c in self.incoming_calls() ]
-        return reduce( add, incoming_callcounts, 0 )
+        return reduce( add, incoming_callcounts, self.__total_callcount_offset )
     
     def outgoing_calls(self):
         """
@@ -647,6 +748,22 @@ class Function( CallGraphNode ):
         @see inline_time()
         """
         self.__inline_time_offset += time
+        
+    def add_primitive_callcount(self, callcount):
+        """
+        Add an amount to the primitive call count offset.
+        
+        @see primitive_callcount()
+        """
+        self.__primitive_callcount_offset += callcount
+        
+    def add_total_callcount(self, callcount):
+        """
+        Add an amount to the total call count offset.
+        
+        @see total_callcount()
+        """
+        self.__total_callcount_offset += callcount
 
     def __str__(self):
         return "Function '{name}'".format( name = self.__name )
