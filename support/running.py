@@ -3,6 +3,7 @@
 
 import cProfile
 import os
+import platform
 import resource
 import time
 
@@ -38,7 +39,7 @@ class DataRecorder:
 
 
     def is_running(self):
-        # There is no way to restart and stop() is the only method setting
+        # There is no way to restart; stop() is the only method setting
         # this variable.
         return self.__stop_time is None
     
@@ -53,7 +54,7 @@ class DataRecorder:
         self.__stop_resources = resource.getrusage( resource.RUSAGE_SELF )
 
 
-    def dump_data(self):
+    def dump_data(self, extra_information = {}):
         if self.is_running():
             self.stop()
         
@@ -65,13 +66,18 @@ class DataRecorder:
         user_time =  self.__stop_resources.ru_utime - self.__start_resources.ru_utime
         sys_time = self.__stop_resources.ru_stime - self.__start_resources.ru_stime
         cpu_time = user_time + sys_time
-        # TODO: Record memory usage
+        max_rss = self.__stop_resources.ru_maxrss
         
         with closing( self.__timing_file ) as timing_file:
-            print( "wall time: {0}".format( wall_time ), file = timing_file )
-            print( "user time: {0}".format( user_time ), file = timing_file )
-            print( "sys time: {0}".format( sys_time ), file = timing_file )
-            print( "cpu time: {0}".format( cpu_time), file = timing_file )
+            print( "platform: {0}".format( platform.platform() ), file = timing_file )
+            print( "python: {0}".format( platform.python_version() ), file = timing_file )
+            print( "wall time (s): {0}".format( wall_time ), file = timing_file )
+            print( "user time (s): {0}".format( user_time ), file = timing_file )
+            print( "sys time (s): {0}".format( sys_time ), file = timing_file )
+            print( "cpu time (s): {0}".format( cpu_time), file = timing_file )
+            print( "max memory (kB): {0}".format( max_rss ), file = timing_file )
+            for key, value in sorted( extra_information.items() ):
+                print( "{0}: {1}".format( key, value ), file = timing_file )
 
         
     @staticmethod
@@ -127,6 +133,7 @@ from optparse import OptionParser, OptionGroup
 class AlgorithmRunner:
     def __init__(self, algorithm, arguments=sys.argv[1:], algorithm_version="<unknown>" ):
         self.__algorithm = algorithm
+        self.__algorithm_version = algorithm_version
         options, arguments = self._parse_arguments( arguments, algorithm_version )
         
         # __input is a list of pairs (<name>, <iterable>);
@@ -154,16 +161,27 @@ class AlgorithmRunner:
                 try:
                     if self.__create_profile:
                         dump_filename = self._generate_dump_name( *item )
-                        recorder = DataRecorder( dump_filename, self.__profile_directory )
+                        recorder = DataRecorder(
+                                        dump_filename,
+                                        self.__profile_directory,
+                                        
+                                    )
                     
-                    self.__algorithm( *item, output=self.__output)
+                    result = self.__algorithm( *item, output=self.__output)
                     
                     if self.__create_profile:
                         recorder.stop()
-                        recorder.dump_data()
+                        extra_information = {
+                                     "algorithm": self.__algorithm.__name__,
+                                     "version": self.__algorithm_version,
+                                     "input": item,
+                                     "result": result
+                                 }
+                        recorder.dump_data( extra_information )
     
                 except TypeError:
-                    message = ">>> Ignoring malformed input in '{name}':{i}"
+                    message = ">>> Algorithm input in '{name}':{i} has the " \
+                              "wrong type. Ignoring it."
                     print( message.format(
                                   name = name,
                                   i = item_number + 1
@@ -172,7 +190,7 @@ class AlgorithmRunner:
                           )
                 except IOError:
                     pass # output failure
-                
+
 
     def _ensure_directory(self, path):
         if not os.path.exists( path ):
@@ -209,7 +227,7 @@ class AlgorithmRunner:
         parser = OptionParser( usage = usage_string, version = version_string )
 
         io_group = OptionGroup(parser, "Input and Output")
-        io_group.add_option( "-f", "--input-file", metavar="FILE",
+        io_group.add_option( "-i", "--input-file", metavar="FILE",
                              dest="input_file",
                              type="string",
                              default=None,
