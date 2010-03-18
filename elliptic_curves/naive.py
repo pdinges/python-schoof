@@ -93,6 +93,11 @@ class EllipticCurve( metaclass=template("_field", "_A", "_B") ):
     def parameters(cls):
         return (cls._A, cls._B)
     
+    @classmethod
+    def is_singular(cls):
+        # A curve is singular if and only if its determinant is 0
+        # (in fields of characteristic neither 2 nor 3).
+        return not 4 * cls._A**3  + 27 * cls._B ** 2
 
 #    TODO: Move class description to metaclass
 #    def __str__(self):
