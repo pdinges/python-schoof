@@ -216,47 +216,50 @@ class CallGraph:
         
         merged_function = self._add_function( ("<merge>", 0, result_name) )
         # FIXME Add inline time and call count offsets.
-
-        # Merge incoming calls; _add_call merges parallel calls
-        incoming_calls = function_a.incoming_calls().union(
-                                   function_b.incoming_calls()
-                               )
-        for call in incoming_calls:
-            self._add_call(
-                   call.caller(),
-                   merged_function,
-                   call.primitive_callcount(),
-                   call.total_callcount(),
-                   call.inline_time(),
-                   call.cumulative_time()
-               )
-            self._remove_call( call )
-
-        # Merge outgoing calls
-        outgoing_calls = function_a.outgoing_calls().union(
-                                   function_b.outgoing_calls()
-                               ) 
-        for call in outgoing_calls:
-            self._add_call(
-                   merged_function,
-                   call.callee(),
-                   call.primitive_callcount(),
-                   call.total_callcount(),
-                   call.inline_time(),
-                   call.cumulative_time()
-               )
-            self._remove_call( call )
-
-        assert not function_a.incoming_calls()
-        assert not function_a.outgoing_calls()
-        assert not function_b.incoming_calls()
-        assert not function_b.outgoing_calls()
-        self._remove_function( function_a )
-        self._remove_function( function_b )
         
+        self._merge_function( function_a, merged_function )
+        self._merge_function( function_b, merged_function )
+
         return merged_function
     
     
+    def merge_namespaces(self, namespaces, result_namespace):
+        """
+        Merge a list of @p namespaces into a single @p result_namespace.
+        
+        All functions with the same Function.name() in the @p namespaces will
+        unified into a function in @p result_namespace. Execution times and
+        call counts will be summarized. If the function does not yet exist,
+        it will be added to the call graph; existing functions will simply have
+        the costs added.
+        
+        @param     namespaces          A list of namespace name strings.
+        @param     result_namespace    Name of the namespace to contain the
+                                       merged functions.
+        """
+        # Lists of all functions with the same name
+        source_index = {}
+        for ns_name in namespaces:
+            for function in self.namespace( ns_name ):
+                source_index.setdefault( function.name(), [] ).append( function )
+        
+        target_index = {}
+        for function in self.namespace( result_namespace ):
+            target_index[ function.name() ] = function
+        
+        for name, function_list in source_index.items():
+            # Not updating the target index is OK: every name appears only once
+            if name in target_index:
+                target_function = target_index[ name ]
+            else:
+                result_name = "{0}::{1}".format( result_namespace, name )
+                file_line_number = ( "<merge>", 0, result_name )
+                target_function = self._add_function( file_line_number )
+
+            for source_function in function_list:
+                self._merge_function( source_function, target_function )
+
+
     def _setdefault_function(self, file_line_name):
         """
         Fetch the Function identified by the @p name tuple; create a new
@@ -303,7 +306,7 @@ class CallGraph:
 
     def _remove_function(self, function):
         """
-        Remove @function from the call graph together with all incoming and
+        Remove @p function from the call graph together with all incoming and
         outgoing Calls.
         
         @param    function    The Function to remove from the graph.
@@ -332,6 +335,49 @@ class CallGraph:
         function._invalidate()
 
         
+    def _merge_function(self, source_function, target_function):
+        """
+        Merge @p source_function into @p target_function.
+        
+        The method removes the source function from the graph; all its incoming
+        and outgoing calls will be added to the incoming and outgoing calls of
+        the target function. The execution times and call counts will be summed
+        up if parallels arise.
+        
+        @todo      Preserve offsets for the inline execution time and call
+                   counts.
+        """
+        # FIXME Add inline time and call count offsets.
+
+        # Merge incoming calls; _add_call merges parallel calls
+        for call in source_function.incoming_calls().copy():
+            self._add_call(
+                   call.caller(),
+                   target_function,
+                   call.primitive_callcount(),
+                   call.total_callcount(),
+                   call.inline_time(),
+                   call.cumulative_time()
+               )
+            self._remove_call( call )
+
+        # Merge outgoing calls
+        for call in source_function.outgoing_calls().copy():
+            self._add_call(
+                   target_function,
+                   call.callee(),
+                   call.primitive_callcount(),
+                   call.total_callcount(),
+                   call.inline_time(),
+                   call.cumulative_time()
+               )
+            self._remove_call( call )
+        
+        assert not source_function.incoming_calls()
+        assert not source_function.outgoing_calls()
+        self._remove_function( source_function )
+    
+    
     def _add_call(self, caller, callee, primitive_callcount, total_callcount, inline_time, cumulative_time ):
         """
         Add a Call to the graph with the given profiling data between @p caller
