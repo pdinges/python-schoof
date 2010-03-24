@@ -31,7 +31,7 @@ class CallGraph:
     @see Call, Function, and @c pstats.Stats in the
          Python library documentation.
     """
-    def __init__(self, stats):
+    def __init__(self, stats=None):
         """
         Constructs a CallGraph from the given @p stats object.
         
@@ -46,7 +46,8 @@ class CallGraph:
         # Indexes to look up Functions
         self.__fln_index = {}       # (filename, line number, name) -> Function
         self.__namespace_index = {} # namespace name -> set of Functions
-        self.add(stats)
+        if stats:
+            self.add( stats )
         
 
     def add(self, stats):

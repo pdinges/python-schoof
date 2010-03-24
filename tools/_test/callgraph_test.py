@@ -40,6 +40,42 @@ class CallGraphTest(unittest.TestCase):
     
     # TODO Add test cases for adding nodes.
     
+    def test_add_stats_adds_times(self):
+        """Adding other pstats.Stats adds times"""
+        # Sample some data
+        function_f = self._callgraph.function( self._name_to_fln["f"] )
+        function_k = self._callgraph.function( self._name_to_fln["k"] )
+        
+        f_itime = function_f.inline_time()
+        f_ctime = function_f.cumulative_time()
+        k_itime = function_k.inline_time()
+        k_ctime = function_k.cumulative_time()
+        
+        self._callgraph.add( self._stats )
+        
+        self.assertAlmostEqual( function_f.inline_time(), 2 * f_itime )
+        self.assertAlmostEqual( function_f.cumulative_time(), 2 * f_ctime )
+        self.assertAlmostEqual( function_k.inline_time(), 2 * k_itime )
+        self.assertAlmostEqual( function_k.cumulative_time(), 2 * k_ctime )
+    
+    def test_add_stats_adds_callcounts(self):
+        """Adding other pstats.Stats adds call counts"""
+        # Sample some data
+        function_f = self._callgraph.function( self._name_to_fln["f"] )
+        function_k = self._callgraph.function( self._name_to_fln["k"] )
+        
+        f_pccount = function_f.primitive_callcount()
+        f_tccount = function_f.total_callcount()
+        k_pccount = function_k.primitive_callcount()
+        k_tccount = function_k.total_callcount()
+        
+        self._callgraph.add( self._stats )
+        
+        self.assert_( function_f.primitive_callcount() == 2 * f_pccount )
+        self.assert_( function_f.total_callcount() == 2 * f_tccount )
+        self.assert_( function_k.primitive_callcount() == 2 * k_pccount )
+        self.assert_( function_k.total_callcount() == 2 * k_tccount )
+    
     def test_add_calls_merges(self):
         """Adding parallel Calls"""
         function_f = self._callgraph.function( self._name_to_fln["f"] )

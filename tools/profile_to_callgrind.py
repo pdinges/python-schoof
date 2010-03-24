@@ -70,7 +70,7 @@ from callgraph import CallGraph
 from contextlib import closing
 
 def main(arguments):
-    usage_string = "%prog <profile_file_path>"
+    usage_string = "%prog <list_of_profile_file_paths>"
     parser = optparse.OptionParser( usage=usage_string )
     
     parser.add_option(  "-o",
@@ -78,21 +78,21 @@ def main(arguments):
                         metavar="FILE",
                         dest="output_name",
                         help="Write output to FILE instead of "
-                        "callgrind.out.INPUT_FILE",
+                        "callgrind.out.FIRST_INPUT_FILE",
                         default=None
                     )
     
     options, arguments = parser.parse_args( arguments )
     
-    if len( arguments ) != 1:
+    if len( arguments ) < 1:
         parser.print_usage()
         return 2
     
-    profile_name = arguments[ 0 ]
+    first_profile_name = arguments[ 0 ]
     
     if not options.output_name:
-        file_name = "callgrind.out.{0}".format( os.path.basename( profile_name ) )
-        directory = os.path.dirname( profile_name )
+        file_name = "callgrind.out.{0}".format( os.path.basename( first_profile_name ) )
+        directory = os.path.dirname( first_profile_name )
         options.output_name = os.path.join( directory, file_name ) 
         
     if os.path.exists( options.output_name ):
@@ -100,14 +100,16 @@ def main(arguments):
         print( message.format( options.output_name ), file=sys.stderr )
         return 1
     
-    try:
-        stats = pstats.Stats( profile_name )
-    except IOError as error:
-        message = "ERROR: Could not open profile file.\nReason: {0}"
-        print( message.format( error ), file=sys.stderr )
-        return 1
-         
-    callgraph = CallGraph( stats )
+    callgraph = CallGraph()
+
+    for profile_name in arguments:
+        try:
+            stats = pstats.Stats( profile_name )
+            callgraph.add( stats )
+        except IOError as error:
+            message = "ERROR: Could not open profile file.\nReason: {0}"
+            print( message.format( error ), file=sys.stderr )
+            return 1
     
     try:    
         with closing( open( options.output_name, "wt" ) ) as output:
