@@ -100,28 +100,97 @@ class DataRecorder:
         raise IOError( "suitable output filenames already taken" )
 
 
-from contextlib import closing
+from contextlib import closing, contextmanager
 
-class SimpleParser:
+import fcntl
+import os.path
+
+class ParallelParser:
     """
-    Simple parser for "separated value" (SV) files.
+    A simple parser for "separated value" (SV) files. Every line of the parsed
+    file is yielded in only one instance operating on it.
     
-    It supports iterating over a SV file line by line and receiving the
-    values from each line as a tuple.
+    Use this class, for instance, to have multiple instances of a program
+    operate on the same parameter list. The class makes sure that every line
+    is read by only one instance of the program.
+    
+    The parser supports iterating over a SV file line by line and receiving
+    the values from each line as a tuple.
     """
     def __init__(self, file, separator=" "):
         self.__separator = separator
-        self.__file = file
+        self.__file = open( file, "rt" )
+        
+        directory = os.path.dirname( file )
+        pipe_file = "{}.pipe".format( os.path.basename( file ) )
+        self.__pipe = open( os.path.join( directory, pipe_file ), "at+" )
+        self.__locked = False
+
+    def __del__(self):
+        with self.__lock() as data:
+            remove_pipe = True if data[0] == 0 else False
+
+        if remove_pipe:
+            self.__pipe.close()
+            os.remove( self.__pipe.name )
+        
+
+    @contextmanager
+    def __lock(self):
+        previously_locked = self.__locked
+        fcntl.lockf( self.__pipe, fcntl.LOCK_EX )
+        self.__locked = True
+
+        try:
+            self.__pipe.seek( 0 )
+            parsers, offset, line = map(int, self.__pipe.readline().split( " " ) )
+        except ValueError:
+            parsers, offset, line = 0, 0, 0
+        
+        yield parsers, offset, line
+        
+        self.__locked = previously_locked
+        if not previously_locked:
+            fcntl.lockf( self.__pipe, fcntl.LOCK_UN )
+
+
+    def __update(self, parsers, offset, line):
+        with self.__lock():
+            self.__pipe.seek( 0 )
+            self.__pipe.truncate()
+            print( parsers, offset, line, file=self.__pipe )
+            self.__pipe.flush()
+
         
     def __iter__(self):
-        with closing( self.__file ) as file:
-            for line_number, line in enumerate( file ):
-                # Ignore empty lines and comments
-                line = line.strip()
-                if not line or line.startswith( "#" ):
-                    continue
-                
-                yield line_number, tuple( line.split( self.__separator ) )
+        # Register: increase the number of parsers
+        with self.__lock() as data:
+            parsers, current_offset, current_line = data
+            self.__update( parsers + 1, current_offset, current_line )
+        
+        # Iterate until the file ends
+        line = self.__file.readline()
+        while line:
+            with self.__lock() as data:
+                parsers, current_offset, current_line = data
+                self.__file.seek( current_offset )
+                line = self.__file.readline()
+                current_line += 1
+
+                while line and not line.strip() and line.strip().startswith( "#" ):
+                    line = self.__file.readline()
+                    current_line += 1
+            
+            if line:
+                self.__update( parsers, self.__file.tell(), current_line )
+                yield current_line, tuple( line.split( self.__separator ) )
+        
+        with self.__lock() as data:
+            parsers, current_offset, current_line = data
+            self.__update( parsers - 1, current_offset, current_line )
+
+        raise StopIteration
+        
             
 
 import os
@@ -142,7 +211,7 @@ class AlgorithmRunner:
         self.__input = [ ( "<stdin>", [ (0, tuple( arguments ) ) ] ) ]
         # Fail early: immediately try to open the file
         if options.input_file:
-            input_parser = SimpleParser( open( options.input_file ) )
+            input_parser = ParallelParser( options.input_file )
             self.__input.append( ( options.input_file, input_parser ) )
         
         # Initialize the remaining attributes.
