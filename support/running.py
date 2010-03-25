@@ -69,15 +69,22 @@ class DataRecorder:
         max_rss = self.__stop_resources.ru_maxrss
         
         with closing( self.__timing_file ) as timing_file:
-            print( "platform: {0}".format( platform.platform() ), file = timing_file )
-            print( "python: {0}".format( platform.python_version() ), file = timing_file )
-            print( "wall time (s): {0}".format( wall_time ), file = timing_file )
-            print( "user time (s): {0}".format( user_time ), file = timing_file )
-            print( "sys time (s): {0}".format( sys_time ), file = timing_file )
-            print( "cpu time (s): {0}".format( cpu_time), file = timing_file )
-            print( "max memory (kB): {0}".format( max_rss ), file = timing_file )
+            info = [ "node: {0}".format( platform.node() ),
+                     "platform: {0}".format( platform.platform() ),
+                     "python: {0}".format( platform.python_version() ),
+                     "date (Y/M/D h:m:s): {0}".format(
+                              datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+                          ),
+                     "wall time (s): {0}".format( wall_time ),
+                     "user time (s): {0}".format( user_time ),
+                     "sys time (s): {0}".format( sys_time ),
+                     "cpu time (s): {0}".format( cpu_time),
+                     "max memory (kB): {0}".format( max_rss ),
+                 ]
             for key, value in sorted( extra_information.items() ):
-                print( "{0}: {1}".format( key, value ), file = timing_file )
+                info.append( "{0}: {1}".format( key, value ) )
+            
+            print( "\n".join( info ), file=timing_file )
 
         
     @staticmethod
@@ -169,6 +176,7 @@ class ParallelParser:
             self.__update( parsers + 1, current_offset, current_line )
         
         # Iterate until the file ends
+        # readline() is just at test for EOF; file will be seek()ed anyway
         line = self.__file.readline()
         while line:
             with self.__lock() as data:
@@ -177,14 +185,17 @@ class ParallelParser:
                 line = self.__file.readline()
                 current_line += 1
 
-                while line and not line.strip() and line.strip().startswith( "#" ):
+                # Skip over empty lines and comments until the file ends
+                while line and (not line.strip() or line.strip().startswith( "#" )):
                     line = self.__file.readline()
                     current_line += 1
             
+            # File might have ended already
             if line:
                 self.__update( parsers, self.__file.tell(), current_line )
-                yield current_line, tuple( line.split( self.__separator ) )
+                yield current_line, tuple( line.strip().split( self.__separator ) )
         
+        # Unregister: decrease the number of parsers
         with self.__lock() as data:
             parsers, current_offset, current_line = data
             self.__update( parsers - 1, current_offset, current_line )
@@ -208,7 +219,9 @@ class AlgorithmRunner:
         # __input is a list of pairs (<name>, <iterable>);
         # <iterable> is expected to return pairs (<item_number>, <item>).
         # See run().
-        self.__input = [ ( "<stdin>", [ (0, tuple( arguments ) ) ] ) ]
+        self.__input = []
+        if arguments:
+            self.__input.append( ( "<stdin>", [ (0, tuple( arguments ) ) ] ) )
         # Fail early: immediately try to open the file
         if options.input_file:
             input_parser = ParallelParser( options.input_file )
@@ -225,6 +238,9 @@ class AlgorithmRunner:
 
 
     def run(self):
+        if not self.__input:
+            self.__parser.print_usage()
+            
         for name, iterable in self.__input:
             for item_number, item in iterable:
                 try:
@@ -327,5 +343,6 @@ class AlgorithmRunner:
         
         parser.add_option_group( profiling_group )
         
+        self.__parser = parser
         return parser.parse_args( arguments )
     
