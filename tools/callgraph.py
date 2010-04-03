@@ -7,6 +7,7 @@
 """
 
 from functools import reduce
+import re
 
 class CallGraph:
     """
@@ -234,10 +235,26 @@ class CallGraph:
         it will be added to the call graph; existing functions will simply have
         the costs added.
         
-        @param     namespaces          A list of namespace name strings.
+        @param     namespaces          A list of namespace name strings, or a
+                                       string with a regular expression.
         @param     result_namespace    Name of the namespace to contain the
                                        merged functions.
         """
+        if isinstance( namespaces, str ):
+            try:
+                namespace_re = re.compile( namespaces )
+                namespaces = [ ns for ns in self.namespaces()
+                                   if namespace_re.match( ns ) ]
+                if namespaces:
+                    result_namespace = \
+                        result_namespace.format(
+                                **namespace_re.match( namespaces[0] ).groupdict()
+                            )
+
+            except AttributeError:
+                message = "expected iterable or regular expression pattern"
+                raise ValueError( message )
+            
         # Lists of all functions with the same name
         source_index = {}
         for ns_name in namespaces:
@@ -260,7 +277,7 @@ class CallGraph:
             for source_function in function_list:
                 self._merge_function( source_function, target_function )
 
-
+    
     def _setdefault_function(self, file_line_name):
         """
         Fetch the Function identified by the @p name tuple; create a new
@@ -313,11 +330,7 @@ class CallGraph:
         @param    function    The Function to remove from the graph.
         """
         # Remove from indexes
-        if function.namespace():
-            absolute_name = "::".join( [ function.namespace(), function.name() ] )
-        else:
-            absolute_name = function.name()
-        fln = ( function.filename(), function.line_number(), absolute_name )
+        fln = ( function.filename(), function.line_number(), function.absolute_name() )
         del self.__fln_index[ fln ]
         
         self.__namespace_index[ function.namespace() ].discard( function )
