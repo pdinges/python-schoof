@@ -1,9 +1,24 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
+"""
+Auxiliary functions for computations related to prime numbers.
+
+The algorithms and implementations are kept as simple as possible. They are
+not meant for high performance computing, but for instructive purposes.
+"""
+
 from math import ceil, sqrt
 
 def primes_range(lower_bound, upper_bound):
+    """
+    Return a list of all primes in the range [@p lower_bound, @p upper_bound).
+    
+    @note      The function returns an actual list, not a proper range object.
+               Furthermore, it computes the complete list of primes up to
+               @p upper_bound on each call. These characteristics make it badly
+               suited for anything involving large ranges or large primes.
+    """
     # The sieve of Eratosthenes
     primes = set( range(2, upper_bound) )
     sieve_bound = ceil( sqrt(upper_bound) )
@@ -15,9 +30,17 @@ def primes_range(lower_bound, upper_bound):
 
 
 def inverse_primorial(n):
-    # FIXME: Start with 2.
+    """
+    Return the smallest prime @c p such that the product of all primes
+    up to @c p (inclusive) is at least @p n.
+    
+    @note      This function uses primes_range() to obtain a list of primes.
+               See the notes there for use case limitations.
+    """
     product = 1
-    for prime in primes_range(3, n+1):
+    # According to the prime number theorem, log(n) should actually suffice
+    # as upper bound. However, we play it safe.
+    for prime in primes_range(2, n+1):
         product *= prime
         if product >= n:
             return prime

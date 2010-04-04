@@ -109,7 +109,7 @@ def get_callgraph( profile_names ):
 
 
 def function_sort_key( function ):
-    # TODO Use locale.strxform() to have local aware string keys
+    # TODO Use locale.strxform() to have locale aware string keys
     return ( function.cumulative_time(),
              function.inline_time(),
              function.namespace().lower(),

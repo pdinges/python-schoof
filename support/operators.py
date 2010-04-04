@@ -11,9 +11,9 @@ def operand_casting(cls):
     """
     Class decorator that adds operand casting to binary operations.
     
-    Note: The decorator assumes that operation definitions remain constant
-          during runtime, that is, will not be re-assigned after
-          template specialization.
+    @note: The decorator assumes that operation definitions remain constant
+           during runtime, that is, will not be re-assigned after
+           template specialization.
     """
     if getattr( cls.__class__, "__operand_casting__", False ):
         return cls
