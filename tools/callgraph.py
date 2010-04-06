@@ -75,9 +75,9 @@ class CallGraph:
             
             # The root function has no incoming calls to store its data.
             if not caller_dict:
-                function.add_primitive_callcount( data[0] )
-                function.add_total_callcount( data[1] )
-                function.add_inline_time( data[2] )
+                function.add_primitive_callcount_offset( data[0] )
+                function.add_total_callcount_offset( data[1] )
+                function.add_inline_time_offset( data[2] )
                 # Cumulative time is calculated from outgoing calls.
                 
 
@@ -155,11 +155,11 @@ class CallGraph:
         @param     function    The Function to hide.
         """
         for call in function.incoming_calls():
-            call.caller().add_inline_time( call.cumulative_time() )
+            call.caller().add_inline_time_offset( call.cumulative_time() )
         for call in function.outgoing_calls():
-            call.callee().add_inline_time( call.inline_time() )
-            call.callee().add_primitive_callcount( call.primitive_callcount() )
-            call.callee().add_total_callcount( call.total_callcount() )
+            call.callee().add_inline_time_offset( call.inline_time() )
+            call.callee().add_primitive_callcount_offset( call.primitive_callcount() )
+            call.callee().add_total_callcount_offset( call.total_callcount() )
         self._remove_function( function )
 
 
@@ -182,7 +182,7 @@ class CallGraph:
         @param     function    The Function to be inlined into its callers.
         """
         for in_call in function.incoming_calls():
-            in_call.caller().add_inline_time( in_call.inline_time() )
+            in_call.caller().add_inline_time_offset( in_call.inline_time() )
             for out_call in function.outgoing_calls():
                 self._add_call(
                           in_call.caller(),
@@ -208,16 +208,12 @@ class CallGraph:
         incoming and outgoing calls of the merged function. The execution
         times and call counts will be summed up if parallels arise.
         
-        @todo      Preserve offsets for the inline execution time and call
-                   counts.
-                 
         @return    The merged Function.
         """
         if not result_name:
             result_name = function_a.absolute_name() + "*"
         
         merged_function = self._add_function( ("<merge>", 0, result_name) )
-        # FIXME Add inline time and call count offsets.
         
         self._merge_function( function_a, merged_function )
         self._merge_function( function_b, merged_function )
@@ -357,11 +353,15 @@ class CallGraph:
         and outgoing calls will be added to the incoming and outgoing calls of
         the target function. The execution times and call counts will be summed
         up if parallels arise.
-        
-        @todo      Preserve offsets for the inline execution time and call
-                   counts.
         """
-        # FIXME Add inline time and call count offsets.
+        
+        # Merge offsets
+        it_offset = source_function.inline_time_offset()
+        pc_offset = source_function.primitive_callcount_offset()
+        tc_offset = source_function.total_callcount_offset()
+        target_function.add_inline_time_offset( it_offset )
+        target_function.add_primitive_callcount_offset( pc_offset )
+        target_function.add_total_callcount_offset( tc_offset )
 
         # Merge incoming calls; _add_call merges parallel calls
         for call in source_function.incoming_calls().copy():
@@ -665,7 +665,7 @@ class Function( CallGraphNode ):
         This method sums the information over all execution paths. Use
         incoming_calls() to get the times of specific invocations.
         
-        Use add_inline_time() to add execution time that does not appear in
+        Use add_inline_time_offset() to add execution time that does not appear in
         the graph (for example when deleting or merging Calls).
         
         This method raises a ValueError if the Function is no longer part of
@@ -677,7 +677,7 @@ class Function( CallGraphNode ):
         @return    The execution time for expressions in the function body.
                    Time spent in called functions does not add to this time.
         
-        @see add_inline_time() 
+        @see add_inline_time_offset() 
         """
         inline_times = [ c.inline_time() for c in self.incoming_calls() ]
         return reduce( add, inline_times, self.__inline_time_offset )
@@ -710,7 +710,7 @@ class Function( CallGraphNode ):
         Call counts are added up over all execution paths. Use incoming_calls()
         to access information of a specific invocation. If you plan to remove
         calls from the graph and nevertheless want to preserve the call count,
-        use add_primitive_callcount() to introduce an offset.
+        use add_primitive_callcount_offset() to introduce an offset.
         
         This method raises a ValueError if the Function is no longer part of
         its owning CallGraph; see CallGraphNode.
@@ -732,7 +732,7 @@ class Function( CallGraphNode ):
         Call counts are added up over all execution paths. Use incoming_calls()
         to access information of a specific invocation. If you plan to remove
         calls from the graph and nevertheless want to preserve the call count,
-        use add_total_callcount() to introduce an offset.
+        use add_total_callcount_offset() to introduce an offset.
         
         This method raises a ValueError if the Function is no longer part of
         its owning CallGraph; see CallGraphNode.
@@ -801,29 +801,53 @@ class Function( CallGraphNode ):
         self._assert_valid()
         return [ call.callee() for call in self.outgoing_calls() ]
 
-    def add_inline_time(self, time):
+    def add_inline_time_offset(self, time):
         """
         Add time to the offset used to calculate inline_time().
         
         @see inline_time()
         """
         self.__inline_time_offset += time
+    
+    def inline_time_offset(self):
+        """
+        Return the current offset used to calculate inline_time().
         
-    def add_primitive_callcount(self, callcount):
+        @see inline_time()
+        """
+        return self.__inline_time_offset
+    
+    def add_primitive_callcount_offset(self, callcount):
         """
         Add an amount to the primitive call count offset.
         
         @see primitive_callcount()
         """
         self.__primitive_callcount_offset += callcount
+
+    def primitive_callcount_offset(self):
+        """
+        Return the current offset used to calculate primitive_callcount().
         
-    def add_total_callcount(self, callcount):
+        @see primitive_callcount()
+        """
+        return self.__primitive_callcount_offset
+        
+    def add_total_callcount_offset(self, callcount):
         """
         Add an amount to the total call count offset.
         
         @see total_callcount()
         """
         self.__total_callcount_offset += callcount
+    
+    def total_callcount_offset(self):
+        """
+        Return the current offset used to calculate total_callcount().
+        
+        @see total_callcount()
+        """
+        return self.__total_callcount_offset
 
     def __str__(self):
         return "Function '{name}'".format( name = self.__name )

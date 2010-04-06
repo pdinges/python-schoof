@@ -330,6 +330,18 @@ class CallGraphTest(unittest.TestCase):
 
         self.assertAlmostEqual( merged.inline_time(), h_itime + k_itime )
     
+    def test_merge_adds_inline_offsets(self):
+        """Merging functions adds up their inline execution time offsets"""
+        function_f = self._callgraph.function( self._name_to_fln["f"] )
+        function_g = self._callgraph.function( self._name_to_fln["g"] )
+        
+        f_itime = function_f.inline_time()
+        g_itime = function_g.inline_time()
+
+        merged = self._callgraph.treat_as_same( function_f, function_g )
+
+        self.assertAlmostEqual( merged.inline_time(), f_itime + g_itime )
+    
     def test_merge_adds_cumulative_times(self):
         """Merging functions adds up their cumulative execution times"""
         function_h = self._callgraph.function( self._name_to_fln["h"] )
@@ -342,6 +354,30 @@ class CallGraphTest(unittest.TestCase):
 
         self.assertAlmostEqual( merged.cumulative_time(), h_ctime + k_ctime )
 
+    def test_merge_adds_primitive_callcount_offsets(self):
+        """Merging functions adds up their primitive call count offsets"""
+        function_f = self._callgraph.function( self._name_to_fln["f"] )
+        function_g = self._callgraph.function( self._name_to_fln["g"] )
+        
+        f_pccount = function_f.primitive_callcount()
+        g_pccount = function_g.primitive_callcount()
+
+        merged = self._callgraph.treat_as_same( function_f, function_g )
+
+        self.assert_( merged.primitive_callcount() == f_pccount + g_pccount )
+    
+    def test_merge_adds_total_callcount_offsets(self):
+        """Merging functions adds up their total call count offsets"""
+        function_f = self._callgraph.function( self._name_to_fln["f"] )
+        function_g = self._callgraph.function( self._name_to_fln["g"] )
+        
+        f_tccount = function_f.total_callcount()
+        g_tccount = function_g.total_callcount()
+
+        merged = self._callgraph.treat_as_same( function_f, function_g )
+
+        self.assert_( merged.total_callcount() == f_tccount + g_tccount )
+    
      
     #- Auxiliary Methods for the Test Cases -----------------------------------
     def _generate_profile(self):

@@ -24,6 +24,8 @@ def apply_threshold( callgraph, threshold ):
         assert( not function.valid() )
 
 
+import re
+
 def merge_by_division_polynomials( callgraph ):
     """
     Merge all namespaces containing specific division polynomials
@@ -32,19 +34,33 @@ def merge_by_division_polynomials( callgraph ):
     For example, 'psi[3]' and 'psi[7]' will be unified into 'psi[l]'.
     """ 
     division_polynomial_namespaces = [
-            ( "^E<Q<E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[(?P<l>[l0-9]+)\]>>$",
+            ( "^E<Q<E<GF<{q}>>\[x,y\]/psi\[(?P<l>[l0-9]+)\]>>$",
               "E<Q<E<GF<{q}>>[x,y]/psi[l]>>" ),
               
-            ( "^Q<E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[(?P<l>[l0-9]+)\]>$",
+            ( "^Q<E<GF<{q}>>\[x,y\]/psi\[(?P<l>[l0-9]+)\]>$",
               "Q<E<GF<{q}>>[x,y]/psi[l]>" ),
               
-            ( "^E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[(?P<l>[l0-9]+)\]$",
+            ( "^E<GF<{q}>>\[x,y\]/psi\[(?P<l>[l0-9]+)\]$",
               "E<GF<{q}>>[x,y]/psi[l]" ),
        ]
     
-    for namespace_re, merged_namespace in division_polynomial_namespaces:
-        callgraph.merge_namespaces( namespace_re, merged_namespace )
+    # Compile a list of all occurring fields
+    fields_re = re.compile( "GF<(?P<q>[q0-9]+)>" )
+    fields = set()
+    for namespace in callgraph.namespaces():
+        m = fields_re.match( namespace )
+        if m:
+            fields.add( m.groupdict()[ "q" ] )
+    
+    # Merge division polynomials grouped by underlying fields
+    for q in fields:
+        for namespace_re, merged_namespace in division_polynomial_namespaces:
+            namespace_re = namespace_re.format( q = q )
+            merged_namespace = merged_namespace.format( q = q )
+            callgraph.merge_namespaces( namespace_re, merged_namespace )
 
+
+import re
 
 def merge_by_fields( callgraph ):
     """
@@ -54,13 +70,13 @@ def merge_by_fields( callgraph ):
     For example, 'GF<3>[x]' and 'GF<5>[x]' will be unified into 'GF<q>[x]'.
     """ 
     field_namespaces = [
-            ( "^E<Q<E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[(?P<l>[l0-9]+)\]>>$",
+            ( "^E<Q<E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[{l}\]>>$",
               "E<Q<E<GF<q>>[x,y]/psi[{l}]>>" ),
               
-            ( "^Q<E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[(?P<l>[l0-9]+)\]>$",
+            ( "^Q<E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[{l})\]>$",
               "Q<E<GF<q>>[x,y]/psi[{l}]>" ),
               
-            ( "^E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[(?P<l>[l0-9]+)\]$",
+            ( "^E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[{l}\]$",
               "E<GF<q>>[x,y]/psi[{l}]" ),
               
             ( "^E<GF<(?P<q>[q0-9]+)>>\[x,y\]$",
@@ -73,8 +89,20 @@ def merge_by_fields( callgraph ):
               "GF<q>" ),
        ]
     
-    for namespace_re, merged_namespace in field_namespaces:
-        callgraph.merge_namespaces( namespace_re, merged_namespace )
+    # Compile a list of all occuring division polynomials
+    divpoly_re = re.compile( "psi\[(?P<l>[l0-9]+)\]" )
+    divpolys = set()
+    for namespace in callgraph.namespaces():
+        m = divpoly_re.match( namespace )
+        if m:
+            divpolys.add( m.groupdict()[ "l" ] )
+    
+    # Merge fields grouped by division polynomials
+    for l in divpolys:
+        for namespace_re, merged_namespace in field_namespaces:
+            namespace_re = namespace_re.format( l = l )
+            merged_namespace = merged_namespace.format( l = l )
+            callgraph.merge_namespaces( namespace_re, merged_namespace )
 
 
 def plain_name( function ):
