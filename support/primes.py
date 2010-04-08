@@ -6,6 +6,9 @@ Auxiliary functions for computations related to prime numbers.
 
 The algorithms and implementations are kept as simple as possible. They are
 not meant for high performance computing, but for instructive purposes.
+
+@package   support.primes
+@author    Peter Dinges <me@elwedgo.de>
 """
 
 from math import ceil, sqrt

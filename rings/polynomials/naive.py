@@ -150,38 +150,6 @@ class Polynomials( CommutativeRing, metaclass=template( "_coefficient_field" ) )
         raise TypeError
     
     
-    def gcd(self, other):
-        """
-        Determine a greatest common divisor of @p self and @p other.
-        
-        @note    The returned polynomial is not necessarily monic; that means
-                 it may have a leading coefficient other than one.  To check
-                 whether two polynomials are relatively prime, test if the result
-                 has degree() zero.
-        """
-        # Modern Euclidean algorithm, see Knuth, D. E.
-        # "The Art of Computer Programming", volume 2, second edition, p. 337
-        # Also see the discussion on polynomial GCDs on pp. 424--426
-        
-        # The simple (non-extended) version suffices because the coefficients
-        # come from a field.
-        if not self.__class__ is other.__class__:
-            return self.gcd( self.__class__( other ) )
-
-        if self.degree() >= other.degree():
-            larger_remainder, smaller_remainder = self, other
-        else:
-            larger_remainder, smaller_remainder = other, self
-        
-        while smaller_remainder:
-            new_remainder = larger_remainder % smaller_remainder
-            # Shift the roles
-            larger_remainder = smaller_remainder
-            smaller_remainder = new_remainder
-        
-        return larger_remainder
-    
-    
     def __call__(self, point):
         return sum( [ c * point**i for i, c in enumerate(self.__coefficients) ] )
     
