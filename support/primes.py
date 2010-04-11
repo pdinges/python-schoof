@@ -21,6 +21,13 @@ def primes_range(lower_bound, upper_bound):
                Furthermore, it computes the complete list of primes up to
                @p upper_bound on each call. These characteristics make it badly
                suited for anything involving large ranges or large primes.
+
+    @param     lower_bound     The minimum size for returned primes; typically
+                               this is an integer, but any number object with
+                               an integer interpretation works. 
+    @param     upper_bound     The strict upper bound for returned primes: all
+                               returned primes are strictly less than this
+                               number.
     """
     # The sieve of Eratosthenes
     primes = set( range(2, upper_bound) )
@@ -35,15 +42,24 @@ def primes_range(lower_bound, upper_bound):
 def inverse_primorial(n):
     """
     Return the smallest prime @c p such that the product of all primes
-    up to @c p (inclusive) is at least @p n.
+    up to @c p (inclusive) is at least @p n. For example,
+    @c inverse_primorial(30) is 5, and @c inverse_primorial(31) is 7. 
     
     @note      This function uses primes_range() to obtain a list of primes.
                See the notes there for use case limitations.
+
+    @param     n   The number object that the product must exceed in size.
+                   The object must have an integer interpretation.
+    
+    @return    The prime @c p such that the product of all primes up to @c p
+               (inclusive) is at least @p n; if @p n is too small (less than 2)
+               the result is 2.
     """
     product = 1
-    # According to the prime number theorem, log(n) should actually suffice
-    # as upper bound. However, we play it safe.
-    for prime in primes_range(2, n+1):
+    # A much smaller upper bound should suffice; however, we play it safe.
+    for prime in primes_range(2, int(n)+1):
         product *= prime
         if product >= n:
             return prime
+    # Return the smallest prime if n is too small
+    return 2

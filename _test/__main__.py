@@ -27,6 +27,11 @@ from . import elliptic_curves_group_test
 all_suites.extend( elliptic_curves_group_test.all_suites )
 
 
+#- Support --------------------------------------------------------------------
+from . import support_test
+all_suites.extend( support_test.all_suites ) 
+
+
 #===============================================================================
 # Run all tests
 #===============================================================================
