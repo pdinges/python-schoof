@@ -65,6 +65,8 @@ def solve_congruence_equations( congruences ):
     
     @note The moduli @f$ m_i @f$ of all congruences must be relatively prime.
     
+    @raise     ValueError      if @p congruences is empty.
+
     @param     congruences     An iterable of objects of QuotientClass over the
                                Integers. Every pair of two different moduli
                                must have a greatest common divisor (gcd()) of 1.
@@ -72,6 +74,9 @@ def solve_congruence_equations( congruences ):
     @return    A QuotientClass over the Integers solving the @p congruences.
     """
     # The Chinese remainder theorem
+    if not congruences:
+        raise ValueError( "cannot solve empty equation system" )
+        
     if __debug__:
         # This test is expensive; remove it in optimized execution
         pairs = [ (c1, c2) for c1 in congruences for c2 in congruences if c1 != c2 ]
@@ -99,5 +104,17 @@ def inverse_modulo(representative, modulus):
     if divided by @p modulus.
     
     In residue class rings, this is the multiplicative inverse.
-    """ 
-    return extended_euclidean_algorithm( representative, modulus )[0]
+
+    @raise     ValueError      if @p representative and @p modulus are not
+                               relatively prime.
+    """
+    inverse, ignore, gcd = extended_euclidean_algorithm( representative, modulus )
+    try:
+        relatively_prime = ( gcd == representative.__class__.one() )
+    except Exception:
+        relatively_prime = ( gcd == 1 ) 
+    
+    if relatively_prime:
+        return inverse
+    else:
+        raise ValueError( "representative and modulus must be relatively prime" ) 
