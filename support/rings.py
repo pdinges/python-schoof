@@ -16,19 +16,23 @@ def extended_euclidean_algorithm(u, v):
     Return a tuple @c (m, n, d) such that @c u*m + v*n = d, where @c d is the
     greatest common divisor of @p u and @p v.
     
-    @note      The implementation does not enforce the use of integers for @p u
-               and @p v. Thus, elements from other rings that support the
-               @c divmod() operations as well as the operators @c //, @c *
-               and @c - should work as well.
+    The implementation does not enforce the use of integers for @p u and @p v.
+    Thus, elements from other rings that support the @c divmod() operations as
+    well as the operators @c //, @c * and @c - should work as well.
 
     @note      If @p u and @p v are Polynomials, then the returned gcd
                polynomial is not necessarily a monic polynomial; that means the
                gcd may have a leading coefficient other than one. To check
                whether two polynomials are relatively prime, test whether the
                result has degree() zero.
+    
+    @raise     ZeroDivisionError   if one of @p u or @p v is zero.
+    
+    @see       Knuth, D. E., "The Art of Computer Programming",
+               volume 2, second edition, p. 342  
     """
-    # Extended Euclidean algorithm, see for example Knuth, D. E.,
-    # "The Art of Computer Programming", volume 2, second edition, p. 342
+    if not (u and v):
+        raise ZeroDivisionError( "cannot determine the gcd of zero" )
     
     # It does not matter which one is larger: if v > u, then the first shift
     # switches u and v.
@@ -62,6 +66,9 @@ def gcd(u, v):
                is not necessarily monic; that means it may have a leading
                coefficient other than one. To check whether two polynomials are
                relatively prime, test whether the result has degree() zero.
+    
+    @see       extended_euclidean_algorithm() for a description of working
+               input types.
     """
     return extended_euclidean_algorithm( u, v )[2]
 

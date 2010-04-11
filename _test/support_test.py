@@ -108,6 +108,49 @@ class InverseModuloTest(unittest.TestCase):
         self.assertRaises( ZeroDivisionError, f )
 
 
+#- Rings ---------------------------------------------------------------------- 
+
+from fields.finite.naive import FiniteField
+from rings.polynomials.naive import Polynomials
+from support.rings import extended_euclidean_algorithm as eeuc
+
+class ExtendedEuclideanAlgorithmTest(unittest.TestCase):
+    """Test cases for the extended Euclidean algorithm"""
+    
+    def test_integer_gcd(self):
+        """Integer GCD"""
+        self.assert_( eeuc( 17, 25 )[2] == 1 )
+        self.assert_( eeuc( 24, 27 )[2] == 3 )
+    
+    def test_integer_linear_combination(self):
+        """Integer GCD as linear combination"""
+        x, y, d = eeuc( 17, 25 )
+        self.assert_( x*17 + y*25 == d )
+        
+    def test_polynomial_gcd(self):
+        """Polynomial GCD"""
+        # gcd( (x+1)^2, (x+1)(x-1) ) == (x+1)
+        R = Polynomials( FiniteField(7) )
+        gcd = eeuc( R(1, 2, 1), R(-1, 0, 1) )[2]   # Make monic
+        self.assert_( gcd // gcd.leading_coefficient() == R(1, 1) )
+        
+    def test_polynomial_linear_combination(self):
+        """Polynomial GCD as linear combination"""
+        R = Polynomials( FiniteField(7) )
+        p, q = R(1, 3, 1, 2, 4), R(1, 0, 1, 1)
+        x, y, d = eeuc( p, q )
+        self.assert_( x*p + y*q == d )
+        
+    def test_zero(self):
+        """GCD of zero"""
+        def f():
+            eeuc( 3, 0 )
+        def g():
+            eeuc( 0, 3 )
+        self.assertRaises( ZeroDivisionError, f )
+        self.assertRaises( ZeroDivisionError, g )
+        
+
 #===============================================================================
 # TestSuites generation
 #===============================================================================
@@ -118,6 +161,7 @@ for test_class in [
                InversePrimorialTest,
                CongruenceEquationTest,
                InverseModuloTest,
+               ExtendedEuclideanAlgorithmTest,
            ]:
     all_suites.append( unittest.TestLoader().loadTestsFromTestCase( test_class ) ) 
 

@@ -14,10 +14,14 @@ not meant for high performance computing, but for instructive purposes.
 def representative_in_range( quotient_class, valid_range ):
     """
     Return the unique representative of @p quotient_class in @p valid_range.
+    For example, the representative of @c (3 mod 7) in @c range(13, 19) is 17.
     
     @param     quotient_class  A QuotientClass over the Integers.
     @param     valid_range     The range() object describing the interval in
                                which to the returned representative must lie. 
+    
+    @return    An integer @c x in @p valid_range with @c x % m == r, where
+               @c m is the modulus, and @c r the remainder of @p quotient_class.  
     
     @raise     ValueError      either if there is no representative in
                                @p valid_range, or if there are multiple.
@@ -72,6 +76,8 @@ def solve_congruence_equations( congruences ):
                                must have a greatest common divisor (gcd()) of 1.
     
     @return    A QuotientClass over the Integers solving the @p congruences.
+    
+    @see       Robinson, D. J. S., "An Introduction to Abstract Algebra", p. 27
     """
     # The Chinese remainder theorem
     if not congruences:
