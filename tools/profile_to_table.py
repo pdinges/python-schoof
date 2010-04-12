@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
-from contextlib import closing
 import optparse
+import sys
 
 def parse_arguments( arguments ):
     usage_string = "%prog <list_of_profile_file_path>"
@@ -63,7 +63,7 @@ def parse_arguments( arguments ):
 
     if len( arguments ) < 1:
         parser.print_usage()
-        return 2
+        sys.exit(2)
     
     return options, arguments
 
@@ -84,7 +84,7 @@ def get_output( first_profile_name, options ):
     if os.path.exists( options.output_name ):
         message = "ERROR: Output file '{0}' already exists. Aborting."
         print( message.format( options.output_name ), file=sys.stderr )
-        return 1
+        sys.exit(1)
     
     return open( options.output_name, "wt" )
 
@@ -103,7 +103,7 @@ def get_callgraph( profile_names ):
         except IOError as error:
             message = "ERROR: Could not open profile file.\nReason: {0}"
             print( message.format( error), file=sys.stderr )
-            return 1
+            sys.exit(1)
     
     return callgraph_
 
@@ -132,6 +132,8 @@ def format_row( row ):
     return r"{0} & {1} & !{2}! & {3} \\".format( *row )
 
 
+import callgraph_operations 
+from contextlib import closing
 from datetime import datetime
 import sys
 
@@ -187,13 +189,13 @@ def main(arguments):
             for row in sorted( rows, reverse=True ):
                 print( format_row( row ), file=output )
 
-        return 0
+        sys.exit(0)
     
     except IOError as error:
         message = "ERROR: Could not store the output.\nReason: {0}"
         print( message.format( error), file=sys.stderr )
-        return 1
+        sys.exit(1)
 
 
 if __name__ == '__main__':
-    sys.exit( main( sys.argv[ 1: ] ) )
+    main( sys.argv[ 1: ] )

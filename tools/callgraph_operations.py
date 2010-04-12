@@ -48,7 +48,7 @@ def merge_by_division_polynomials( callgraph ):
     fields_re = re.compile( "GF<(?P<q>[q0-9]+)>" )
     fields = set()
     for namespace in callgraph.namespaces():
-        m = fields_re.match( namespace )
+        m = fields_re.search( namespace )
         if m:
             fields.add( m.groupdict()[ "q" ] )
     
@@ -69,16 +69,17 @@ def merge_by_fields( callgraph ):
     
     For example, 'GF<3>[x]' and 'GF<5>[x]' will be unified into 'GF<q>[x]'.
     """ 
-    field_namespaces = [
+    field_namespaces_with_divpoly = [
             ( "^E<Q<E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[{l}\]>>$",
               "E<Q<E<GF<q>>[x,y]/psi[{l}]>>" ),
               
-            ( "^Q<E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[{l})\]>$",
+            ( "^Q<E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[{l}\]>$",
               "Q<E<GF<q>>[x,y]/psi[{l}]>" ),
               
             ( "^E<GF<(?P<q>[q0-9]+)>>\[x,y\]/psi\[{l}\]$",
               "E<GF<q>>[x,y]/psi[{l}]" ),
-              
+       ]
+    field_namespaces = [
             ( "^E<GF<(?P<q>[q0-9]+)>>\[x,y\]$",
               "E<GF<q>>[x,y]" ),
               
@@ -93,16 +94,19 @@ def merge_by_fields( callgraph ):
     divpoly_re = re.compile( "psi\[(?P<l>[l0-9]+)\]" )
     divpolys = set()
     for namespace in callgraph.namespaces():
-        m = divpoly_re.match( namespace )
+        m = divpoly_re.search( namespace )
         if m:
             divpolys.add( m.groupdict()[ "l" ] )
-    
+
     # Merge fields grouped by division polynomials
     for l in divpolys:
-        for namespace_re, merged_namespace in field_namespaces:
+        for namespace_re, merged_namespace in field_namespaces_with_divpoly:
             namespace_re = namespace_re.format( l = l )
             merged_namespace = merged_namespace.format( l = l )
             callgraph.merge_namespaces( namespace_re, merged_namespace )
+            
+    for namespace_re, merged_namespace in field_namespaces:
+        callgraph.merge_namespaces( namespace_re, merged_namespace )
 
 
 def plain_name( function ):
