@@ -62,67 +62,127 @@ class CallgrindProfile:
 
 
 import optparse
-import os.path
-import pstats
-import sys
 
-from callgraph import CallGraph
-from contextlib import closing
-
-def main(arguments):
-    usage_string = "%prog <list_of_profile_file_paths>"
+def parse_arguments( arguments ):
+    usage_string = "%prog <list_of_profile_file_path>"
     parser = optparse.OptionParser( usage=usage_string )
     
     parser.add_option(  "-o",
                         "--output-name",
-                        metavar="FILE",
                         dest="output_name",
+                        default=None,
+                        metavar="FILE",
                         help="Write output to FILE instead of "
-                        "callgrind.out.FIRST_INPUT_FILE",
-                        default=None
-                    )
+                        "callgrind.out.FIRST_INPUT_FILE"
+                   )
+    
+    parser.add_option( "-w",
+                       "--preserve-wrappers",
+                       dest="preserve_wrappers",
+                       action="store_true",
+                       default=False,
+                       help="Preserve casting wrappers instead of merging "
+                       "them with the wrapped function"
+                   )
+    parser.add_option( "-d",
+                       "--merge-division-polynomials",
+                       dest="merge_divpolys",
+                       action="store_true",
+                       default=False,
+                       help="Merge namespaces with division polynomials into "
+                       "a generic namespace"
+                   )
+    parser.add_option( "-f",
+                       "--merge-fields",
+                       dest="merge_fields",
+                       action="store_true",
+                       default=False,
+                       help="Merge namespaces of fields with different element "
+                       "count into a generic namespace"
+                   )
     
     options, arguments = parser.parse_args( arguments )
-    
+
     if len( arguments ) < 1:
         parser.print_usage()
-        return 2
+        sys.exit(2)
     
-    first_profile_name = arguments[ 0 ]
-    
-    if not options.output_name:
-        file_name = "callgrind.out.{0}".format( os.path.basename( first_profile_name ) )
+    return options, arguments
+
+
+import os.path
+import sys
+
+def get_output( first_profile_name, options ):
+    if options.output_name == "-":
+        return sys.stdout
+        
+    elif not options.output_name:
+        base_name = os.path.splitext( os.path.basename( first_profile_name ) )[0]
+        file_name = "callgrind.out.{0}".format( base_name )
         directory = os.path.dirname( first_profile_name )
-        options.output_name = os.path.join( directory, file_name ) 
+        options.output_name = os.path.join( directory, file_name) 
         
     if os.path.exists( options.output_name ):
         message = "ERROR: Output file '{0}' already exists. Aborting."
         print( message.format( options.output_name ), file=sys.stderr )
-        return 1
+        sys.exit(1)
     
-    callgraph = CallGraph()
+    return open( options.output_name, "wt" )
 
-    for profile_name in arguments:
+
+import callgraph
+import pstats
+import sys
+
+def get_callgraph( profile_names ):
+    callgraph_ = callgraph.CallGraph()
+    
+    for profile_name in profile_names:
         try:
             stats = pstats.Stats( profile_name )
-            callgraph.add( stats )
+            callgraph_.add( stats )
         except IOError as error:
             message = "ERROR: Could not open profile file.\nReason: {0}"
-            print( message.format( error ), file=sys.stderr )
-            return 1
+            print( message.format( error), file=sys.stderr )
+            sys.exit(1)
     
+    return callgraph_
+
+
+import callgraph_operations 
+from contextlib import closing
+import sys
+
+def main(arguments):
+    options, arguments = parse_arguments( arguments )
+    
+    output = get_output( arguments[0], options )
+    callgraph = get_callgraph( arguments )
+    
+    #- Merge ------------------------------------------------------------------ 
+    if not options.preserve_wrappers:
+        callgraph_operations.merge_casting_wrappers( callgraph )
+    
+    if options.merge_divpolys:
+        callgraph_operations.merge_by_division_polynomials( callgraph )
+    
+    if options.merge_fields:
+        callgraph_operations.merge_by_fields( callgraph )
+    
+    #- Output -----------------------------------------------------------------
     try:    
-        with closing( open( options.output_name, "wt" ) ) as output:
+        with closing( output ):
             callgrind_profile = CallgrindProfile( callgraph )
             callgrind_profile.dump( output )
 
-            return 0
+            sys.exit(0)
     
     except IOError as error:
         message = "ERROR: Could not store the output.\nReason: {0}"
         print( message.format( error ), file=sys.stderr )
-        return 1
+        sys.exit(1)
 
 
 if __name__ == '__main__':
-    sys.exit( main( sys.argv[ 1: ] ) )
+    main( sys.argv[ 1: ] )
