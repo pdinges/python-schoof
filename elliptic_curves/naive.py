@@ -45,15 +45,24 @@ class EllipticCurve( metaclass=template("_field", "_A", "_B") ):
             return PointAtInfinity()
         else:
             if self.__x == other.x():
-                A, B = self.parameters()
-                l = (3 * self.__x ** 2  + A) / (2 * self.__y)
+                return self.__double__()
             else:
-                l = (other.y() - self.__y) / (other.x() - self.__x)
+                return self.__generic_add__( other )
+                
+    def __generic_add__(self, other):
+        gamma = (other.y() - self.__y) / (other.x() - self.__x)
+        u = -self.__x - other.x() +  gamma ** 2
+        v = -self.__y - gamma * (u - self.__x)
+        
+        return self.__class__(u, v)
 
-            u = -self.__x - other.x() +  l ** 2
-            v = -self.__y - l * (u - self.__x)
-            
-            return self.__class__(u, v)
+    def __double__(self):
+        A, B = self.parameters()
+        delta = (3 * self.__x ** 2  + A) / (2 * self.__y)
+        u = -self.__x - self.__x +  delta ** 2
+        v = -self.__y - delta * (u - self.__x)
+        
+        return self.__class__(u, v)
     
     def __sub__(self, other):
         return self + (-other)
