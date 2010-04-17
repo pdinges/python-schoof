@@ -14,10 +14,8 @@ class Field:
     A base class for field elements that provides default operator overloading.
     
     For example, subtraction is defined as addition of the additive inverse.
-    Derived classes therefore only have to implement these operations to
-    support the complete operator set.
-    
-    The following operations must be implemented in derived classes:
+    Derived classes therefore only have to implement the following operations
+    to support the complete operator set:
     - __bool__(): Zero testing (@c True if not zero)
     - __eq__(): Equality testing with the @c == operator (@c True if equal)
     - __add__(): Addition with the @c + operator; @c self is the left summand
@@ -42,85 +40,6 @@ class Field:
       divisor (right element) 
     - __pow__(): Exponentiation with integers
     """
-    def __bool__(self):
-        """
-        Test whether the element is non-zero: return @c True if, and only if,
-        it is non-zero. Otherwise return @c False.  Implicit conversions to
-        boolean (truth) values use this method, for example when @c x is an
-        element of a Field:
-        @code
-        if x:
-            do_something()
-        @endcode
-        
-        @exception NotImplementedError if this method is called; subclasses
-                                       must implement this operation.
-        """
-        raise NotImplementedError
-    
-    def __eq__(self, other):
-        """
-        Test whether another element @p other is equal to @p self; return
-        @c True if that is the case.  The infix operator @c == calls this
-        method, for example:
-        @code
-        if self == other:
-            do_something()
-        @endcode
-        
-        @exception NotImplementedError if this method is called; subclasses
-                                       must implement this operation.
-        """
-        raise NotImplementedError
-    
-    def __add__(self, other):
-        """
-        Return the sum of @p self and @p other.  The infix operator @c + calls
-        this method if @p self is the left summand, for example:
-        @code
-        result = self + other
-        @endcode
-        
-        @exception NotImplementedError if this method is called; subclasses
-                                       must implement this operation.
-        """
-        raise NotImplementedError
-    
-    def __neg__(self):
-        """
-        Return the additive inverse of @p self.  The unary minus operator @c -x
-        calls this method, for example:
-        @code
-        negated = -self
-        @endcode
-
-        @exception NotImplementedError if this method is called; subclasses
-                                       must implement this operation.
-        """
-        raise NotImplementedError
-    
-    def __mul__(self, other):
-        """
-        Return the product of @p self and @p other.  The infix operator @c + calls
-        this method if @p self is the left factor, for example:
-        @code
-        result = self * other
-        @endcode
-        
-        @exception NotImplementedError if this method is called; subclasses
-                                       must implement this operation.
-        """
-        raise NotImplementedError
-    
-    def multiplicative_inverse(self):
-        """
-        Return the multiplicative inverse of @p self.
-
-        @exception NotImplementedError if this method is called; subclasses
-                                       must implement this operation.
-        """
-        raise NotImplementedError
-
     
     #- Template Operations ---------------------------------------------------- 
     
@@ -128,7 +47,7 @@ class Field:
         """
         Test whether another element @p other is different from @p self; return
         @c True if that is the case.  The infix operator @c != calls this
-        method, for example:
+        method; for example:
         @code
         if self != other:
             do_something()
@@ -150,7 +69,7 @@ class Field:
     def __sub__(self, other):
         """
         Return the difference of @p self and @p other.  The infix operator @c -
-        calls this method if @p self is the minuend (left element), for example:
+        calls this method if @p self is the minuend (left element); for example:
         @code
         result = self - other
         @endcode
@@ -183,7 +102,7 @@ class Field:
     def __truediv__(self, other):
         """
         Return the quotient of @p self and @p other.  The infix operator @c /
-        calls this method if @p self is the dividend, for example:
+        calls this method if @p self is the dividend; for example:
         @code
         result = self / other
         @endcode
@@ -219,13 +138,13 @@ class Field:
     def __pow__(self, n):
         """
         Return @p self taken to the @p n-th power.  The infix operator @c **
-        calls this method, for example:
+        calls this method; for example:
         @code
         result = self ** n
         @endcode
         
         @note  The implementation uses the most naive by-the-book method for
-               exponentiation: the element is multiplied @p other-1 times with
+               exponentiation: the element is multiplied @p n-1 times with
                itself.  This is slow (and might skin your cat!).  However, the
                purpose of this code is to be easy to understand, not fast. 
         
@@ -238,3 +157,86 @@ class Field:
             result = result * self
         
         return result
+
+
+    #- Base Operations (Defined in Derived Classes) ---------------------------
+    
+    def __bool__(self):
+        """
+        Test whether the element is non-zero: return @c True if, and only if,
+        it is non-zero. Otherwise return @c False.  Implicit conversions to
+        boolean (truth) values use this method; for example when @c x is an
+        element of a Field:
+        @code
+        if x:
+            do_something()
+        @endcode
+        
+        @exception NotImplementedError if this method is called; subclasses
+                                       must implement this operation.
+        """
+        raise NotImplementedError
+    
+    def __eq__(self, other):
+        """
+        Test whether another element @p other is equal to @p self; return
+        @c True if that is the case.  The infix operator @c == calls this
+        method; for example:
+        @code
+        if self == other:
+            do_something()
+        @endcode
+        
+        @exception NotImplementedError if this method is called; subclasses
+                                       must implement this operation.
+        """
+        raise NotImplementedError
+    
+    def __add__(self, other):
+        """
+        Return the sum of @p self and @p other.  The infix operator @c + calls
+        this method if @p self is the left summand; for example:
+        @code
+        result = self + other
+        @endcode
+        
+        @exception NotImplementedError if this method is called; subclasses
+                                       must implement this operation.
+        """
+        raise NotImplementedError
+    
+    def __neg__(self):
+        """
+        Return the additive inverse of @p self.  The unary minus operator @c -x
+        calls this method; for example:
+        @code
+        negated = -self
+        @endcode
+
+        @exception NotImplementedError if this method is called; subclasses
+                                       must implement this operation.
+        """
+        raise NotImplementedError
+    
+    def __mul__(self, other):
+        """
+        Return the product of @p self and @p other.  The infix operator @c + calls
+        this method if @p self is the left factor; for example:
+        @code
+        result = self * other
+        @endcode
+        
+        @exception NotImplementedError if this method is called; subclasses
+                                       must implement this operation.
+        """
+        raise NotImplementedError
+    
+    def multiplicative_inverse(self):
+        """
+        Return the multiplicative inverse of @p self.
+
+        @exception NotImplementedError if this method is called; subclasses
+                                       must implement this operation.
+        """
+        raise NotImplementedError
+ 
