@@ -55,7 +55,8 @@ class FractionField( Field, metaclass=template("_integral_domain") ):
            operation returns @c NotImplemented (so that @p other.__rop__()
            might be invoked).
     
-    @see   For example, Robinson, Derek J. S., "Abstract Algebra", p. 113.
+    @see   For example, Robinson, Derek J. S.,
+           "An Introduction to Abstract Algebra", p. 113.
     """    
     def __init__(self, numerator, denominator=None):
         """

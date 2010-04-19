@@ -23,8 +23,8 @@ def representative_in_range( quotient_class, valid_range ):
     @return    An integer @c x in @p valid_range with @c x % m == r, where
                @c m is the modulus, and @c r the remainder of @p quotient_class.  
     
-    @raise     ValueError      either if there is no representative in
-                               @p valid_range, or if there are multiple.
+    @exception ValueError  either if there is no representative in
+                           @p valid_range, or if there are multiple.
     """
     if len(valid_range) > quotient_class.modulus():
         raise ValueError("solution not unique")
@@ -69,13 +69,14 @@ def solve_congruence_equations( congruences ):
     
     @note The moduli @f$ m_i @f$ of all congruences must be relatively prime.
     
-    @raise     ValueError      if @p congruences is empty.
+    @exception ValueError      if @p congruences is empty.
 
     @param     congruences     An iterable of objects of QuotientClass over the
                                Integers. Every pair of two different moduli
                                must have a greatest common divisor (gcd()) of 1.
     
-    @return    A QuotientClass over the Integers solving the @p congruences.
+    @return    An instance of rings.quotients.naive.QuotientRing over the
+               rings.integers.naive.Integers solving the @p congruences.
     
     @see       Robinson, D. J. S., "An Introduction to Abstract Algebra", p. 27
     """
@@ -111,7 +112,7 @@ def inverse_modulo(representative, modulus):
     
     In residue class rings, this is the multiplicative inverse.
 
-    @raise     ValueError      if @p representative and @p modulus are not
+    @exception ValueError      if @p representative and @p modulus are not
                                relatively prime.
     """
     inverse, ignore, gcd = extended_euclidean_algorithm( representative, modulus )

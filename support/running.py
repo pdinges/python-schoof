@@ -2,7 +2,7 @@
 # $Id$
 
 """
-Support classes for applying algorithms to files of parameter lists;
+Support classes for feeding files of parameter lists to algorithms;
 furthermore support for the profiling of algorithms.
 
 @package   support.running
@@ -38,7 +38,7 @@ class DataRecorder:
     dr = DataRecorder( "algo" )    # Start recorder
     algo( some_parameter_set )     # Invoke algorithm
     dr.stop()
-    dr.dump()                      # Write the recored information to disk
+    dr.dump()                      # Write the recorded information to disk
     @endcode
     
     @note      It is the user's responsibility to dump() the collected

@@ -26,7 +26,7 @@ def extended_euclidean_algorithm(u, v):
                whether two polynomials are relatively prime, test whether the
                result has degree() zero.
     
-    @raise     ZeroDivisionError   if one of @p u or @p v is zero.
+    @exception ZeroDivisionError   if one of @p u or @p v is zero.
     
     @see       Knuth, D. E., "The Art of Computer Programming",
                volume 2, second edition, p. 342  
