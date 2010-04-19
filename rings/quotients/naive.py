@@ -30,7 +30,7 @@ class QuotientRing( CommutativeRing, metaclass=template( "_ring", "_modulus" ) )
     This is a template class that must be instantiated with the source ring
     and modulus.  Use it, for example, as follows:
     @code
-    # Instantiate the template; R is a class (here: integer congruence classes)
+    # Instantiate the template; Z4 is a class (here: integer congruence classes)
     Z4 = QuotientRing( rings.integers.naive.Integers, 4 )
     x = Z4(1)      # Create a residue class: (1 mod 4)
     y = Z4(3)      # Another residue class: (2 mod 4)
@@ -77,8 +77,11 @@ class QuotientRing( CommutativeRing, metaclass=template( "_ring", "_modulus" ) )
            operation returns @c NotImplemented (so that @p other.__rop__()
            might be invoked).
     
-    @see   For example, Robinson, Derek J. S., "Abstract Algebra", p. 106.
+    @see   For example, Robinson, Derek J. S.,
+           "An Introduction to Abstract Algebra", p. 106.
     """
+    
+    #- Instance Methods ----------------------------------------------------------- 
     
     def __init__(self, representative):
         """
@@ -221,6 +224,8 @@ class QuotientRing( CommutativeRing, metaclass=template( "_ring", "_modulus" ) )
             raise ZeroDivisionError( message ) 
 
 
+    #- Class Methods----------------------------------------------------------- 
+    
     @classmethod
     def modulus(cls):
         """
@@ -229,6 +234,7 @@ class QuotientRing( CommutativeRing, metaclass=template( "_ring", "_modulus" ) )
         """
         return cls._modulus
 
+
     @classmethod
     def ring(cls):
         """
@@ -236,18 +242,20 @@ class QuotientRing( CommutativeRing, metaclass=template( "_ring", "_modulus" ) )
         """
         return cls._ring
     
+    
     @classmethod
     def zero(cls):
         """
-        Return the source ring's neutral element of addition: the residue
+        Return the quotient ring's neutral element of addition: the residue
         class (QuotientRing element) of ring().zero()
         """
         return cls( cls._ring.zero() )
     
+    
     @classmethod
     def one(cls):
         """
-        Return the source ring's neutral element of multiplication: the residue
-        class (QuotientRing element) of ring().one()
+        Return the quotient ring's neutral element of multiplication: the
+        residue class (QuotientRing element) of ring().one()
         """
         return cls( cls._ring.one() )

@@ -20,6 +20,7 @@ class Integers(int):
     @see   rings.polynomials.naive.Polynomials,
            rings.quotients.naive.QuotientRing
     """
+    
     @staticmethod
     def zero():
         """
