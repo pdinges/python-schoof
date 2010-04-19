@@ -13,6 +13,9 @@ all_suites = []
 from . import polynomial_rings_test
 all_suites.extend( polynomial_rings_test.all_suites )
 
+from . import quotient_rings_test
+all_suites.extend( quotient_rings_test.all_suites )
+
 
 #- Fields --------------------------------------------------------------------- 
 from . import finite_fields_test

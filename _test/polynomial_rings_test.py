@@ -283,11 +283,6 @@ def generate_test_suites(polynomialring_implementation, name_prefix):
         self.assert_( R(0) * R(7, 3, 2) == R(0) )
         self.assert_( S(0) * S(7, 3, 2) == S(0) )
 
-    def test_mul_inverse(self):
-        """Multiplicative inverse raises an exception"""
-        self.assertRaises( TypeError, R(1).multiplicative_inverse )
-        self.assertRaises( TypeError, S(1).multiplicative_inverse )
-    
     def test_mul_casting_field_elements(self):
         """Multiplication: automatic casting of field elements as right factor"""
         self.assert_( R(1, 2) * Z(3) == R(3, 6) )
