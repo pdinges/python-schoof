@@ -403,35 +403,6 @@ def generate_test_suites(polynomialring_implementation, name_prefix):
         def f():
             return S(1, 1) ** F(3)
         self.assertRaises( TypeError, f )
-
-
-    #- Greatest Common Divisor-------------------------------------------------
-    # TODO: Move these tests to the unit test of support.rings 
-    def test_gcd_base(self):
-        """GCD base case"""
-        self.assert_( gcd( S(1, 2, 1),  S(1, 1) ) == S(1, 1) )    
-        # GCDs differ by a constant multiple, so make the result monic
-        d = gcd( S(0, -1, 0, 1), S(1, 2, 1) ) 
-        self.assert_(  d // d.leading_coefficient() == S(1, 1) )    
-  
-    def test_gcd_relatively_prime(self):
-        """GCD of relatively prime elements"""
-        self.assert_( gcd( S(-1, 0, 1), S(0, 1) ).degree() == 0 )
-        
-    def test_gcd_casting_field_elements(self):
-        """GCD: automatic casting of field elements"""
-        self.assert_( gcd( S(2, 4), F(2) ) == S( 2 ) )
-    
-    def test_gcd_casting_integers(self):
-        """GCD: automatic casting of integers"""
-        self.assert_( gcd( S(2, 4), 2 ) == S( 2 ) )
-    
-    def test_gcd_uncastable(self):
-        """GCD: raise TypeError if uncastable"""
-        def f():
-            print( gcd( S(2, 3), R(1, 2) ) )
-            return gcd( S(2, 3), R(1, 2) )
-        self.assertRaises( TypeError, f )
   
   
   suites = []
