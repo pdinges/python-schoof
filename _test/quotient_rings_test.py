@@ -27,11 +27,129 @@ def generate_test_suites(quotientring_implementation, name_prefix):
 
   class ElementsTest(unittest.TestCase):
     """
-    Test cases concerning the creation and comparison of
-    elements of finite fields
+    Test cases concerning the creation and comparison of residue classes.
     """
-    # TODO: Implement
-    pass
+    #- Creation --------------------------------------------------------------- 
+    def test_create(self):
+        """Element creation"""
+        self.assertIsNotNone( F(0) )
+        self.assertIsNotNone( G(0) )
+        self.assertIsNotNone( R(P(0)))
+    
+    def test_create_casting(self):
+        """Element creation casts integers into ring elements"""
+        self.assertIsNotNone( R(0) )
+        self.assertIsNotNone( R( (1, 2, 3) ) )
+        
+    def test_create_uncastable(self):
+        """Element creation raises TypeError if uncastable"""
+        def f():
+            return G(F(1))
+        def g():
+            return F(G(2))
+        def h():
+            return R(G(3))
+        self.assertRaises( TypeError, f )
+        self.assertRaises( TypeError, g )
+   
+    def test_create_idempotent(self):
+        """Element creation accepts elements of the same field"""
+        self.assert_( F(F(1)) == F(1) )
+        self.assert_( G(G(7)) == G(7) )
+        self.assert_( R((1, 2, 3)) == R(R((1, 2, 3))) )
+    
+    
+    #- Equality --------------------------------------------------------------- 
+    def test_eq_true(self):
+        """Equality: true statement"""
+        self.assert_( F(3) == F(3) )
+        self.assert_( G(3) == G(3) )
+        self.assert_( R((4, 2)) == R((4, 2)) )
+        
+    def test_eq_false(self):
+        """Equality: false statement"""
+        self.failIf( F(3) == F(5) )
+        self.failIf( G(3) == G(15) )
+        self.failIf( R((4, 2)) == R((2, 3)) )
+
+    def test_eq_casting_ring_elements(self):
+        """Equality: automatic casting of ring elements on the right hand side"""
+        self.assert_( R((1, 5, 8)) == P(1, 5, 8) )
+        
+    def test_eq_casting_integers(self):
+        """Equality: automatic casting of integers on the right hand side"""
+        self.assert_( F(1) == 1 )
+        self.assert_( G(6) == 6 )
+        self.assert_( R(4) == 4 )
+        
+    def test_eq_casting_ring_elements_reversed(self):
+        """Equality: automatic casting of ring elements on the left hand side"""
+        self.assert_( P(3, 7, 0) == R((3, 7, 0)) )
+        
+    def test_eq_casting_integers_reversed(self):
+        """Equality: automatic casting of integers on the left hand side"""
+        self.assert_( 3 == F(3) )
+        self.assert_( 5 == G(5) )
+        self.assert_( 4 == R(4) )
+        
+    def test_eq_uncastable(self):
+        """Equality: uncastable resolves to false"""
+        self.failIf( F(1) == G(1) )
+        self.failIf( F(3) == R(3) )
+        
+
+    #- Inequality ------------------------------------------------------------- 
+    def test_ne_true(self):
+        """Inequality: true statement"""
+        self.failIf( F(3) != F(3) )
+        self.failIf( G(3) != G(3) )
+        self.failIf( R((7, 2)) != R((7, 2)) )
+        
+    def test_ne_false(self):
+        """Inequality: false statement"""
+        self.assert_( F(3) != F(5) )
+        self.assert_( G(3) != G(5) )
+        self.assert_( R((0, 9, 2)) != R((4, 8)) )
+
+    def test_ne_casting_ring_elements(self):
+        """Inquality: automatic casting of ring elements on the right hand side"""
+        self.assert_( R((1, 5, 8)) != P(3, 2, 1) )
+        
+    def test_ne_casting_integers(self):
+        """Inequality: automatic casting of integers on the right hand side"""
+        self.assert_( F(1) != 2 )
+        self.assert_( G(1) != 2 )
+        self.assert_( R(1) != 2 )
+        
+    def test_ne_casting_ring_elements_reversed(self):
+        """Equality: automatic casting of ring elements on the left hand side"""
+        self.assert_( P(3, 2, 1) != R((1, 6, 6)) )
+        
+    def test_ne_casting_integers_reversed(self):
+        """Inequality: automatic casting of integers on the left hand side"""
+        self.assert_( 2 != F(1) )
+        self.assert_( 2 != G(1) )
+        self.assert_( 2 != R(1) )
+      
+    def test_ne_uncastable(self):
+        """Inequality: uncastable resolves to false"""
+        self.assert_( F(1) != G(1) )
+        self.assert_( R(2) != F(2) )
+
+
+    #- Test for zero ---------------------------------------------------------- 
+    def test_zero_true(self):
+        """Test for zero: true"""
+        self.failIf( F(0) )
+        self.failIf( G(0) )
+        self.failIf( R(0) )
+        self.failIf( R((1, 0, 0, 1)) )
+
+    def test_zero_false(self):
+        """Test for zero: false"""
+        self.assert_( F(23) )
+        self.assert_( G(42) )
+        self.assert_( R((1, 0, 1)) )
 
 
   class ArithmeticTest(unittest.TestCase):
