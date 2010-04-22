@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
+__description = \
 """
 Generate a list of random parameters of non-singular elliptic curves
 over the finite fields with @c p elements. The primes @c p are computed from
 pairs "n, k" as p = 2^n - k; the pairs are read one per line from the given
 input file.
 """
+__doc__ = __description
+
 
 def non_singular(p, A, B):
     """
@@ -60,7 +63,10 @@ from contextlib import closing
 
 def main(arguments):
     usage_string = "%prog <primes_list>"
-    parser = optparse.OptionParser( usage=usage_string )
+    parser = optparse.OptionParser(
+                               usage=usage_string,
+                               description=__description.strip()
+                           )
     
     parser.add_option(  "-o",
                         "--output-name",
