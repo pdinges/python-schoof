@@ -1,12 +1,98 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
+# Docstrings will be empty if optimization (-OO command line flag) is enabled.
+# However, the description has to be available regardless of this.  Thus put
+# it in an extra variable.
+__description = \
+r"""
+Create a table of the most expensive functions in execution profile dumps
+generated with the cProfile module.  The output is in LaTeX table format:
+columns separated with '&', rows separated with '\\'.  It has four columns:
+cumulative time, inline time, function name, function description.  The script    
+uses the cumulative time as primary sort key; the inline time is the secondary
+sort key.  
+
+This script accepts several profile dumps as input and allows some aggregation,
+grouping, and pruning of the data. 
+"""
+__doc__ = __description
+
+
+import callgraph_operations 
+from contextlib import closing
+from datetime import datetime
+import sys
+
+def main(arguments):
+    options, arguments = parse_arguments( arguments )
+    
+    output = get_output( arguments[0], options )
+    callgraph = get_callgraph( arguments )
+    
+    #- Merge ------------------------------------------------------------------ 
+    if not options.preserve_wrappers:
+        callgraph_operations.merge_casting_wrappers( callgraph )
+    
+    if options.merge_divpolys:
+        callgraph_operations.merge_by_division_polynomials( callgraph )
+    
+    if options.merge_fields:
+        callgraph_operations.merge_by_fields( callgraph )
+    
+    #- Prune ------------------------------------------------------------------
+    if options.threshold:
+        callgraph_operations.apply_threshold( callgraph, options.threshold / 100 )
+    
+    #- Print ------------------------------------------------------------------
+    try:
+        with closing( output ):
+            header = "%% Table of the {limit} most expensive functions " \
+                     "(first sort key: cumulative time; second key: inline time)\n" \
+                     "%% Cost threshold: {threshold}%\n" \
+                     "%% Merged: {merged}\n" \
+                     "%% Generated on {date} from:\n" \
+                     "%% {input}"
+            merge_options = [
+                           (options.preserve_wrappers, "preserved casting wrappers"),
+                           (options.merge_divpolys, "division polynomials namespaces"),
+                           (options.merge_fields, "fields namespaces" )
+                       ]
+            header = header.format(
+                               limit = options.limit,
+                               threshold = int( options.threshold ),
+                               merged = ", ".join( [ m[1] for m in merge_options if m[0] ] ),
+                               date = datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+                               input = "\n%% ".join( arguments ), 
+                           )
+            print( header, file=output )
+            
+            functions = sorted( callgraph, key=function_sort_key, reverse=True )
+            rows = [ prepare_row( f, callgraph.total_time() )
+                       for f in functions[ : options.limit ] ]
+            
+            # Sort again to prevent (seemingly) wrong order
+            # from rounding to the same value
+            for row in sorted( rows, reverse=True ):
+                print( format_row( row ), file=output )
+
+        sys.exit(0)
+    
+    except IOError as error:
+        message = "ERROR: Could not store the output.\nReason: {0}"
+        print( message.format( error), file=sys.stderr )
+        sys.exit(1)
+
+
 import optparse
 import sys
 
 def parse_arguments( arguments ):
-    usage_string = "%prog <list_of_profile_file_path>"
-    parser = optparse.OptionParser( usage=usage_string )
+    usage_string = "%prog <list_of_profile_file_paths>"
+    parser = optparse.OptionParser(
+                               usage=usage_string,
+                               description=__description.strip()
+                           )
     
     parser.add_option(  "-o",
                         "--output-name",
@@ -14,13 +100,23 @@ def parse_arguments( arguments ):
                         default=None,
                         metavar="FILE",
                         help="Write output to FILE instead of "
-                        "FIRST_INPUT_FILE.tex"
+                        "FIRST_INPUT_FILE.tex  Use '-' to have the output "
+                        "written to the terminal (stdout)."
                    )
+    
+    parser.add_option(  "-w",
+                        "--overwrite",
+                        dest="overwrite",
+                        action="store_true",
+                        default=False,
+                        help="Overwrite the output file if it already exists."
+                   )
+    
     parser.add_option( "-t",
                        "--threshold",
                        dest="threshold",
-                       type="float",
-                       default=0.02,
+                       type="int",
+                       default=2,
                        metavar="PERCENT",
                        help="Ignore all functions with less than PERCENT "
                        "part in the total execution time"
@@ -34,7 +130,7 @@ def parse_arguments( arguments ):
                        help="Return the top NUMBER functions" 
                    )
     
-    parser.add_option( "-w",
+    parser.add_option( "-c",
                        "--preserve-wrappers",
                        dest="preserve_wrappers",
                        action="store_true",
@@ -81,7 +177,7 @@ def get_output( first_profile_name, options ):
         directory = os.path.dirname( first_profile_name )
         options.output_name = os.path.join( directory, file_name) 
         
-    if os.path.exists( options.output_name ):
+    if not options.overwrite and os.path.exists( options.output_name ):
         message = "ERROR: Output file '{0}' already exists. Aborting."
         print( message.format( options.output_name ), file=sys.stderr )
         sys.exit(1)
@@ -130,71 +226,6 @@ def prepare_row( function, total_time ):
 
 def format_row( row ):
     return r"{0} & {1} & !{2}! & {3} \\".format( *row )
-
-
-import callgraph_operations 
-from contextlib import closing
-from datetime import datetime
-import sys
-
-def main(arguments):
-    options, arguments = parse_arguments( arguments )
-    
-    output = get_output( arguments[0], options )
-    callgraph = get_callgraph( arguments )
-    
-    #- Merge ------------------------------------------------------------------ 
-    if not options.preserve_wrappers:
-        callgraph_operations.merge_casting_wrappers( callgraph )
-    
-    if options.merge_divpolys:
-        callgraph_operations.merge_by_division_polynomials( callgraph )
-    
-    if options.merge_fields:
-        callgraph_operations.merge_by_fields( callgraph )
-    
-    #- Prune ------------------------------------------------------------------
-    if options.threshold:
-        callgraph_operations.apply_threshold( callgraph, options.threshold )
-    
-    #- Print ------------------------------------------------------------------
-    try:
-        with closing( output ):
-            header = "%% Table of the {limit} most expensive functions " \
-                     "(first sort key: cumulative time; second key: inline time)\n" \
-                     "%% Cost threshold: {threshold}%\n" \
-                     "%% Merged: {merged}\n" \
-                     "%% Generated on {date} from:\n" \
-                     "%% {input}"
-            merge_options = [
-                           (options.preserve_wrappers, "preserved casting wrappers"),
-                           (options.merge_divpolys, "division polynomials namespaces"),
-                           (options.merge_fields, "fields namespaces" )
-                       ]
-            header = header.format(
-                               limit = options.limit,
-                               threshold = int( options.threshold * 100 ),
-                               merged = ", ".join( [ m[1] for m in merge_options if m[0] ] ),
-                               date = datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
-                               input = "\n%% ".join( arguments ), 
-                           )
-            print( header, file=output )
-            
-            functions = sorted( callgraph, key=function_sort_key, reverse=True )
-            rows = [ prepare_row( f, callgraph.total_time() )
-                       for f in functions[ : options.limit ] ]
-            
-            # Sort again to prevent (seemingly) wrong order
-            # from rounding to the same value
-            for row in sorted( rows, reverse=True ):
-                print( format_row( row ), file=output )
-
-        sys.exit(0)
-    
-    except IOError as error:
-        message = "ERROR: Could not store the output.\nReason: {0}"
-        print( message.format( error), file=sys.stderr )
-        sys.exit(1)
 
 
 if __name__ == '__main__':
