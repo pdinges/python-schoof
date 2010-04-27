@@ -225,7 +225,10 @@ def prepare_row( function, total_time ):
 
 
 def format_row( row ):
-    return r"{0} & {1} & !{2}! & {3} \\".format( *row )
+    if row[3]:
+        return r"{0} & {1} & !{2}! \hfill\hbox{{\hskip 1.5em ({3})}} \\".format( *row )
+    else:
+        return r"{0} & {1} & !{2}! \\".format( *row )
 
 
 if __name__ == '__main__':
