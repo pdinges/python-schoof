@@ -59,9 +59,11 @@ def generate_test_suites(frobenius_trace_implementation, name_prefix):
 #===============================================================================
 
 import naive_schoof
+import reduced_computation_schoof
 
 implementations = [
     (naive_schoof.frobenius_trace, "Naive"),
+    (reduced_computation_schoof.frobenius_trace, "Reduced"),
 ]
 
 all_suites = []

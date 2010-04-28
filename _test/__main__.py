@@ -35,6 +35,10 @@ from . import support_test
 all_suites.extend( support_test.all_suites ) 
 
 
+#- Algorithms -----------------------------------------------------------------
+from . import algorithm_test
+all_suites.extend( algorithm_test.all_suites )
+
 #===============================================================================
 # Run all tests
 #===============================================================================
