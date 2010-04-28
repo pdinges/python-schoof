@@ -18,7 +18,7 @@ in Mathematics of Computation, Vol. 44, No. 170 (Apr. 1985), pp. 483--494.
 @author    Peter Dinges <me@elwedgo.de>
 """
 
-from elliptic_curves.n_torsion_group.naive import NTorsionGroup
+from elliptic_curves.l_torsion_group.naive import LTorsionGroup
 from support.primes import inverse_primorial, primes_range
 from support.quotients import solve_congruence_equations, representative_in_range
 
@@ -43,7 +43,7 @@ def frobenius_trace(curve):
     # polynomial arithmetic by handling 2-torsion separately)
     trace_congruences.append( frobenius_trace_mod_2( curve ) )
 
-    torsion_group = NTorsionGroup( curve )
+    torsion_group = LTorsionGroup( curve )
     for prime in primes_range( 3, upper_prime_bound+1 ):
         trace_congruences.append(
                 frobenius_trace_mod_l( torsion_group( prime ) )
