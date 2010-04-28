@@ -1,20 +1,76 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
+"""
+An indexed list of division polynomials.
+
+@package   elliptic_curves.division_polynomials.naive
+@author    Peter Dinges <me@elwedgo.de>
+"""
+
 class DivisionPolynomialsList:
     """
-    List of division polynomials ordered by index.
+    An indexed list of division polynomials over an elliptic curve.
+
+    Use it, for example, as follows:
+    @code
+    # Create the underlying elliptic curve
+    E = elliptic_curves.naive.EllipticCurve( FiniteField(7), 3, 4 )
+    R = CurvePolynomials( E )
+    # Instantiate the list
+    psi = DivisionPolynomialsList( R )
+
+    # Retrieve some division polynomials
+    p = psi[2]    # The second is '2y'
+    q = psi[3]    # The third is already longer: 3x^4 + 6Ax^2 + 12Bx -A^2
     
-    This implementation generates the polynomials on demand
-    and caches the results.
+    # Use division polynomials for arithmetic on l-torsion points
+    Q = QuotientRing( R, psi[3] )
+    # Do something with Q...
+    @endcode
+
+    The division polynomials are specific polynomials over an elliptic curve.
+    The l-th divison polynomial @f$ \psi_l @f$ has zeros of multiplicity 1
+    precisely at the finite l-torsion points
+    @f$ E[l]\setminus\{\mathcal{O}\} @f$.  Modular polynomial arithmetic then
+    allows computations with the l-torsion points without knowing them
+    explicitly. (Their coordinates come from the algebraic closure of the
+    curve's field; thus they might be badly suited for computer representations.)
+    
+    An implementation of l-torsion groups using division polynomials is available from
+    @c elliptic_curves.l_torsion_group.naive.LTorsionGroup. 
+    
+    @note  The implementation lazily constructs the polynomials: the l-th polynomial
+           will be instantiated only if index @c l is accessed; the polynomial will
+           then be cached.
+        
+    @see   elliptic_curves.polynomials.naive.CurvePolynomials;
+           elliptic_curves.l_torsion_group.naive.LTorsionGroup; and
+           Charlap, Leonard S. and Robbins, David P., "CRD Expositroy Report 31:
+           An Elementary Introduction to Elliptic Curves", 1988, chapter 9
     """
+
     def __init__(self, curve_polynomials):
+        """
+        Construct a new list of division polynomials for the given ring of
+        @p curve_polynomials.
+        
+        @param curve_polynomials   The ring of polynomials over an elliptic
+                                   curve from which the polynomials will come.
+                                   Note that no type checks will be performed
+                                   to guarantee maximum freedom in experiments.
+                                   If the given object supports the interface
+                                   of @c elliptic_curves.polynomials.naive.CurvePolynomials,
+                                   then everything will be fine.
+        """
         class DivisionPolynomials( curve_polynomials ):
             """
             DivisionPolynomials are specific instances of polynomials on the
             curve.  They grow quadratically in degree, which clutters their
             string representation.  Instead of printing the coefficients,
             print the customary 'psi[l]' where l is the polynomial's index.
+            
+            @see   elliptic_curves.polynomials.naive.CurvePolynomials
             """
             def __str__(self):
                 # The leading coefficient equals the torsion.  Using quotient
@@ -35,9 +91,10 @@ class DivisionPolynomialsList:
     
     def __getitem__(self, index):
         """
-        Retrieve the division polynomial with the given index.
+        Retrieve the division polynomial with the given @p index; an index
+        of @f$ l @f$ will return @f$ \psi_l @f$.
         
-        The polynomial will be an instance of curve_polynomials().
+        The polynomial will be an instance of @c curve_polynomials().
         """
         index = int(index)
         if index < 0:
@@ -48,19 +105,31 @@ class DivisionPolynomialsList:
 
 
     def curve_polynomials(self):
+        """
+        Return the ring of polynomials from which the division polynomials come.
+        
+        This is the ring of polynomials over an elliptic curve used to
+        construct the DivisionPolynomialsList.
+        
+        @see   __init__()
+        """
         return self.__curve_polynomials
 
-    def __generate_up_to( self, n ):
+
+    def __generate_up_to( self, l ):
         """
-        Ascertain that all division polynomials up to (including) 'n'
+        Ascertain that all division polynomials up to (including) 'l'
         exist in the cache self.__psi.
         
         Calling this method has no effect if the polynomials already exist.
         """
+        # See Charlap, Leonard S. and Robbins, David P., "CRD Expositroy
+        # Report 31: An Elementary Introduction to Elliptic Curves", 1988,
+        # Definition 9.8 for the recurrence
         if not self.__psi:
             self.__psi = 5 * [ None ]
  
-            # R = F[x] / (y**2 - x**3 - A*x - B)
+            # R = F[x,y] / (y**2 - x**3 - A*x - B)
             R = self.__curve_polynomials
             # The polynomial y (used in the recursion scheme)
             self.__y = R( 0, 1 )
@@ -80,9 +149,9 @@ class DivisionPolynomialsList:
 
         psi = self.__psi
         y = self.__y
-        for j in range( len(self.__psi), n+1 ):
-            k, l = divmod(j, 2) 
-            if l:
+        for j in range( len(self.__psi), l+1 ):
+            k, m = divmod(j, 2) 
+            if m:
                 # j is odd
                 psi.append( psi[k+2] * psi[k]**3  -  psi[k+1]**3 * psi[k-1] )
             else:
