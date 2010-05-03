@@ -37,7 +37,10 @@ def frobenius_trace(curve):
     """
     trace_congruences = []
     search_range = hasse_frobenius_trace_range( curve.field() )
-    modulo_primes = greedy_prime_factors( len(search_range) )
+    modulo_primes = greedy_prime_factors(
+                                 len(search_range),
+                                 curve.field().characteristic()
+                             )
     
     # To avoid multivariate polynomial arithmetic, make l=2 a special case.
     if 2 in modulo_primes:
@@ -178,10 +181,10 @@ def hasse_frobenius_trace_range(field):
 
 from support.primes import primes_range, inverse_primorial
 
-def greedy_prime_factors(n):
+def greedy_prime_factors(n, shunned=0):
     """
     Return a list of the first primes whose product is greater than, or equal
-    to @p n.
+    to @p n, but do not use @p shunned.
     
     For example, if @p n is 14, then the returned list will consist of 3 and
     5, but not 2, because 3 times 5 is greater than 14. The function behaves
@@ -199,12 +202,15 @@ def greedy_prime_factors(n):
     # Find the smallest product of primes that is at least n
     product = 1
     for index, prime in enumerate( primes ):
-        product *= prime
-        if product >= n:
-            break
+        if prime != shunned:
+            product *= prime
+            if product >= n:
+                break
     
     # Throw away excess primes
     primes = primes[ : index+1 ]
+    if shunned in primes:
+        primes.remove( shunned )
     
     # Try to cancel unnecessary primes, largest first.
     # (This greedy search is not optimal; however, we did not set out to solve

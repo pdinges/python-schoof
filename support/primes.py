@@ -39,7 +39,7 @@ def primes_range(lower_bound, upper_bound):
     return sorted(list( primes - set(range(2, lower_bound)) ))
 
 
-def inverse_primorial(n):
+def inverse_primorial(n, shunned = 0):
     """
     Return the smallest prime @c p such that the product of all primes
     up to @c p (inclusive) is at least @p n. For example,
@@ -58,8 +58,9 @@ def inverse_primorial(n):
     product = 1
     # A much smaller upper bound should suffice; however, we play it safe.
     for prime in primes_range(2, int(n)+1):
-        product *= prime
-        if product >= n:
-            return prime
+        if prime != shunned:
+            product *= prime
+            if product >= n:
+                return prime
     # Return the smallest prime if n is too small
     return 2

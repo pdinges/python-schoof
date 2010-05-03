@@ -71,7 +71,7 @@ class LTorsionGroup( metaclass=template("_elliptic_curve") ):
                        implicit representation, see above. 
         """
         torsion = int( torsion )
-        if torsion < 3 or torsion % 2 or self.curve().field()(torsion) == 0:
+        if torsion < 3 or torsion % 2 == 0 or self.curve().field()(torsion) == 0:
             raise ValueError( "only odd torsions greater than 1 are supported" )
         
         self.__torsion = torsion

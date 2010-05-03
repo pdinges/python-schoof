@@ -37,7 +37,10 @@ def frobenius_trace(curve):
     # Initialize variables and parameters
     trace_congruences = []
     search_range = possible_frobenius_trace_range( curve.field() )
-    upper_prime_bound = inverse_primorial( len(search_range) )
+    upper_prime_bound = inverse_primorial(
+                            len(search_range),
+                            shunned = curve.field().characteristic()
+                          )
     
     # Collect the congruence equations (avoid multivariate
     # polynomial arithmetic by handling 2-torsion separately)
@@ -45,9 +48,10 @@ def frobenius_trace(curve):
 
     torsion_group = LTorsionGroup( curve )
     for prime in primes_range( 3, upper_prime_bound+1 ):
-        trace_congruences.append(
-                frobenius_trace_mod_l( torsion_group( prime ) )
-             )
+        if prime != curve.field().characteristic():
+            trace_congruences.append(
+                    frobenius_trace_mod_l( torsion_group( prime ) )
+                 )
     
     # Recover the unique valid trace representative
     trace_congruence = solve_congruence_equations(
