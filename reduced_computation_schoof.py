@@ -37,18 +37,18 @@ def frobenius_trace(curve):
     """
     trace_congruences = []
     search_range = hasse_frobenius_trace_range( curve.field() )
-    modulo_primes = greedy_prime_factors(
+    torsion_primes = greedy_prime_factors(
                                  len(search_range),
                                  curve.field().characteristic()
                              )
     
     # To avoid multivariate polynomial arithmetic, make l=2 a special case.
-    if 2 in modulo_primes:
+    if 2 in torsion_primes:
         trace_congruences.append( frobenius_trace_mod_2( curve ) )
-        modulo_primes.remove( 2 )
+        torsion_primes.remove( 2 )
 
     torsion_group = LTorsionGroup( curve )
-    for prime in modulo_primes:
+    for prime in torsion_primes:
         trace_congruences.append(
                 frobenius_trace_mod_l( torsion_group( prime ) )
              )
@@ -126,8 +126,9 @@ def frobenius_trace_mod_l(torsion_group):
     torsion_quotient_ring = QuotientRing( Integers, torsion_group.torsion() )
     field_size = torsion_group.curve().field().size()
 
-    # FIXME: Technically, there could be several points so we have to filter
-    #        the one candidate that worked for all points in the end.
+    # Note: Technically, there could be several points so we would have to
+    #       filter the one candidate that worked for all points in the end.
+    #       Luckily, there is only one point.
     for point in torsion_group.elements():
         frobenius_point = frobenius( point, field_size )
         frobenius2_point = frobenius( frobenius_point, field_size )
@@ -199,7 +200,8 @@ def greedy_prime_factors(n, shunned=0):
     """
     primes = primes_range( 2, n+1 )
     
-    # Find the smallest product of primes that is at least n
+    # Find the smallest product of primes that is at least n, but don't use
+    # the shunned prime.
     product = 1
     for index, prime in enumerate( primes ):
         if prime != shunned:
