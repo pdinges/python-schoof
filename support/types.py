@@ -1,12 +1,41 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
+"""
+A template meta-class system.
+
+Template meta-classes offer high modularity and natural syntax for
+mathematical objects; for instance, see rings.polynomials.naive.Polynomials
+or fields.finite.naive.FiniteField
+
+@package   support.types
+@author    Peter Dinges <me@elwedgo.de>
+"""
+
 def template( *parameters ):
     """
-    Factory function to create template meta-classes.
+    Factory function to create template meta-classes.  The function arguments
+    are the names of the template parameters.  After specialization, the bound
+    parameters are available as class attributes of the given names.
     
     Usage example:
-      class C(metaclass=template("a", "b")): pass
+    @code
+    # Create a class template C with parameters "a" and "b"
+    class C( metaclass=template("a", "b") ):
+        pass
+    
+    # Instantiate the template with values 23 and 42; Cp is a class object.
+    Cp = C(23, 42)
+    isinstance(Cp, type) == True   # This holds
+    Cp.a == 23
+    Cp.b == 42
+    
+    # Construct Cp objects
+    x = Cp()
+    type(x) is Cp                  # This also holds
+    @endcode
+    
+    @see TypeTemplate
     """
     template_name = "TypeTemplate<{0}>".format( ", ".join( parameters ) )
     template_bases = tuple( [ TypeTemplate ] )
@@ -18,22 +47,47 @@ def template( *parameters ):
 
 
 def is_incomplete( class_object ):
+    """
+    Test whether the template class @p class_object has any unbound parameters.
+    
+    @return    @c False if the template class is fully specialized; @c True
+               otheriwse (that is, if it has unbound parameters).
+    """
     return getattr( class_object.__class__, "__unbound_parameters__", False )
 
 
 class TypeTemplate(type):
     """
-    A template meta-class prototype; use function template() to create
+    A template meta-class prototype; use the function @c template() to create
     actual meta-class types. 
     
     Outline of usage and effects:
-    > T = template("a", "b") -> Template meta-class with parameters "a" and "b";
-      usable as meta-class for _any_ class
-    > class C(metaclass=T) -> Template with parameters for C; type(C) = T<a,b>
-    > C(4) = Template for C with parameter "a" set; type(C(4)) = T<a=3,b>.
-      T<a=3,b> is a subtype of T<a,b>
-    > class D(C) = Template for D with parameters "a" and "b"; type(D) = T<a,b>
-    > class E(C, b=) = Template for E with parameter "b" set; type(E) = T<a,b=1>
+    @code
+    # Create a template meta-class 'T' with parameters "a" and "b".
+    # The meta-class can be used for _any_ class.
+    T = template("a", "b")
+    
+    # Create a class template with parameters "a" and "b" (these come from T)
+    # The type of C is T<a,b>
+    class C(metaclass=T):
+        def __str__(self): return "C"
+    
+    # Partially specialize C by setting parameter a; this yields a class
+    # template D with the single parameter "b"; type(D) is T<a=4,b> and
+    # is a subtype of T<a,b>
+    D = C(4)
+    
+    # Create a subclass template E with parameters "a" and "b"; use this to
+    # re-implement methods from the class template C
+    class E(C):
+        def __str__(self): return "E"
+    # Parameters can be bound while subclassing template classes
+    class F(C, b=2):
+        def __str__(self): return "F with b=2"
+    @endcode
+    
+    @see   The sources of rings.quotients.naive.QuotientRing and
+           fields.finite.naive.FiniteField for examples.
     """
     
     # Note: type objects are their own meta-classes.

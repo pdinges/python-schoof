@@ -1,20 +1,37 @@
 # -*- coding: utf-8 -*-
 # $Id$
 
-#   @f( arg )
-#   class A: pass
-# resolves to
-#   class A: pass
-#   A = f( arg )( A )
-# See section "Function definitions" in the Python language reference.
+"""
+A class decorator for operand casting in binary operations.  Use it to support
+mixed mode operations in arithmetic objects, for example, to be able to add
+regular integers to finite field elements.
+
+@package   support.operators
+@author    Peter Dinges <me@elwedgo.de>
+"""
+
 def operand_casting(cls):
     """
     Class decorator that adds operand casting to binary operations.
     
-    @note: The decorator assumes that operation definitions remain constant
+    The decorator offers an easy way to support mixed mode operations in
+    arithmetic objects.  For example, it allows polynomials to interpret
+    integer constants as constant polynomials without adding overhead to the
+    operator methods like __add__() etc.
+    
+    @note  The decorator assumes that operation definitions remain constant
            during runtime, that is, will not be re-assigned after
            template specialization.
+    
+    @see   The sources of rings.polynomials.naive.Polynomials
+           for a usage example.
     """
+    #   @f( arg )
+    #   class A: pass
+    # resolves to
+    #   class A: pass
+    #   A = f( arg )( A )
+    # See section "Function definitions" in the Python language reference.
     if getattr( cls.__class__, "__operand_casting__", False ):
         return cls
 
@@ -43,6 +60,7 @@ def operand_casting(cls):
     return cls
 
 
+# Wrap these operations
 __binary_operation_names = [
        "eq", "neq",
        "add", "radd", "sub", "rsub",
@@ -55,6 +73,12 @@ __binary_operation_names = [
 from .profiling import rename_function
 
 def __casting_wrapped( operation ):
+    """
+    Return the wrapped @p operation (without nesting the wrappers).
+    
+    This function is not intended for direct use; rather, employ
+    @c operand_casting()
+    """
     if hasattr( operation, "__wrapped_method__" ):
         return operation
     

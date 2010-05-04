@@ -2,8 +2,11 @@
 # $Id$
 
 """
+Classes related to call graphs (directed bipartite graphs of functions and
+calls between them).
+
 @package   callgraph
-@author    Peter Dinges
+@author    Peter Dinges <me@elwedgo.de>
 """
 
 from functools import reduce
