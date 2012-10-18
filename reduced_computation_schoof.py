@@ -16,7 +16,7 @@ computations.
 in Mathematics of Computation, Vol. 44, No. 170 (Apr. 1985), pp. 483--494.
 
 @package   schoof.reduced_computation
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 from elliptic_curves.l_torsion_group.naive import LTorsionGroup

@@ -5,7 +5,7 @@
 A naive implementation of finite fields.
 
 @package   fields.finite.naive
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 from rings.quotients.naive import QuotientRing
@@ -43,7 +43,7 @@ class FiniteField(QuotientRing, _ring=Integers):
     
     @see       rings.quotients.naive.QuotientRing
     
-    @author    Peter Dinges <me@elwedgo.de>
+    @author    Peter Dinges <pdinges@acm.org>
     """
 
     @classmethod

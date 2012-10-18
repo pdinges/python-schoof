@@ -6,7 +6,7 @@ A naive implementation of an elliptic curve with points
 using Cartesian coordinates as representation.
 
 @package   elliptic_curves.naive
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 from support.types import template

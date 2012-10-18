@@ -6,7 +6,7 @@ Support classes for feeding files of parameter lists to algorithms;
 furthermore support for the profiling of algorithms.
 
 @package   support.running
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 import cProfile

@@ -8,7 +8,7 @@ The algorithms and implementations are kept as simple as possible. They are
 not meant for high performance computing, but for instructive purposes.
 
 @package   support.primes
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 from math import ceil, sqrt

@@ -6,7 +6,7 @@ A wrapper that extends Python's built-in integer type @c int with the expected
 ring interface.
 
 @package   rings.integers.naive
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 from support.profiling import profiling_name

@@ -6,7 +6,7 @@ A naive implementation of fraction fields (rational fields over an
 integral domain).
 
 @package   fields.fraction.naive
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 from fields import Field

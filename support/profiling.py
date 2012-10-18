@@ -14,7 +14,7 @@ the template parameters bloat the type name; the decorator @c profiling_name()
 alleviates the issue.
 
 @package   support.profiling
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 def profiling_name(name):

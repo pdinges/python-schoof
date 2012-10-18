@@ -8,7 +8,7 @@ The algorithms and implementations are kept as simple as possible. They are
 not meant for high performance computing, but for instructive purposes.
 
 @package   support.rings
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 def extended_euclidean_algorithm(u, v):

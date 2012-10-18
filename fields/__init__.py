@@ -6,7 +6,7 @@ Field related classes and functions (field as in rational, real, or
 complex numbers).
 
 @package   fields
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 class Field:

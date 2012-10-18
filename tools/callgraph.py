@@ -6,7 +6,7 @@ Classes related to call graphs (directed bipartite graphs of functions and
 calls between them).
 
 @package   callgraph
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 from functools import reduce

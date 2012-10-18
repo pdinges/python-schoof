@@ -5,7 +5,7 @@
 A naive implementation of the ring of polynomials over an elliptic curve.
 
 @package   elliptic_curves.polynomials.naive
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 from rings import CommutativeRing

@@ -5,7 +5,7 @@
 An indexed list of division polynomials.
 
 @package   elliptic_curves.division_polynomials.naive
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 class DivisionPolynomialsList:

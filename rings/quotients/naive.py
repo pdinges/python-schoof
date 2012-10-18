@@ -5,7 +5,7 @@
 A naive implementation of quotient rings (factor rings, residue class rings).
 
 @package   rings.quotients.naive
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 from rings import CommutativeRing

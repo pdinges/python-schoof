@@ -9,7 +9,7 @@ mathematical objects; for instance, see rings.polynomials.naive.Polynomials
 or fields.finite.naive.FiniteField
 
 @package   support.types
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 def template( *parameters ):

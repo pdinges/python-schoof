@@ -5,7 +5,7 @@
 Ring related classes and functions (ring as in integers).
 
 @package   rings
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 class CommutativeRing:

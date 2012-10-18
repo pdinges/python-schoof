@@ -6,7 +6,7 @@ A naive implementation of an implicitly represented l-torsion group
 of an elliptic curve.
 
 @package   elliptic_curves.l_torsion_group.naive
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 from rings.quotients.naive import QuotientRing

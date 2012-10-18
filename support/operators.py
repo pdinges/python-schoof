@@ -7,7 +7,7 @@ mixed mode operations in arithmetic objects, for example, to be able to add
 regular integers to finite field elements.
 
 @package   support.operators
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 def operand_casting(cls):

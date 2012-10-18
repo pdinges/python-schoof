@@ -5,7 +5,7 @@
 A naive implementation of polynomial rings with coefficients from a field.
 
 @package   rings.polynomials.naive
-@author    Peter Dinges <me@elwedgo.de>
+@author    Peter Dinges <pdinges@acm.org>
 """
 
 from rings import CommutativeRing
