@@ -47,7 +47,7 @@ available.  Note that the version 3 interpreter could also be named
 follow the steps below to set up Python locally in your account.
 
 
-=== Local Installation from Source Code
+### Local Installation from Source Code
 
 Installing Python from source code requires a C compiler; on Linux and
 Unix systems, one is almost always available.  The following steps
@@ -104,19 +104,19 @@ and Hasse's theorem.  Curves for counting are specified as
 space-separated triples *p*, *A*, and *B*: *p* is the prime size of
 the galois field *GF[p]*, and *A* and *B* are the curve parameters.
 
-=== Example
+### Example
 
 Suppose you want to count the number of points on the elliptic curve
 over *GF[23]* with parameters *A=4* and *B=2*.  If the current
 directory in the terminal is the repository root, then
 executing `python3 naive_schoof.py 23 4 2` yields the output
 
-~~~~
+~~~~~
 Counting points on y^2 = x^3 + 4x + 2 over GF<23>: 21
 ~~~~~
 
 
-=== Command Line Parameters
+### Command Line Parameters
 
 The program supports the command line options described below, which
 for instance allow to read the curves from a file, or to create
