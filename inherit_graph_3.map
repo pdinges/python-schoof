@@ -1,0 +1,12 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node3" href="$classelliptic__curves_1_1l__torsion__group_1_1naive_1_1_l_torsion_group.html" title="An l&#45;torsion group of an elliptic curve for odd l; use the elements() method to have intuitive syntax..." alt="" coords="225,171,407,213"/>
+<area shape="rect" id="node5" href="$classelliptic__curves_1_1naive_1_1_elliptic_curve.html" title="An elliptic curve; the points support additive infix notation for group operations, as well as multiplication by integers." alt="" coords="227,99,405,141"/>
+<area shape="rect" id="node7" href="$classelliptic__curves_1_1polynomials_1_1naive_1_1_curve_polynomials.html" title="A ring of polynomials over an elliptic curve; the polynomials support infix notation for ring operati..." alt="" coords="211,237,421,278"/>
+<area shape="rect" id="node9" href="$classfields_1_1fraction_1_1naive_1_1_fraction_field.html" title="A field of formal quotients (fractions) &#160;over an integral domain; the field elements support infix no..." alt="" coords="226,386,406,427"/>
+<area shape="rect" id="node11" href="$classrings_1_1polynomials_1_1naive_1_1_polynomials.html" title="A ring of polynomials in one indeterminate with coefficients from the provided field; the polynomials..." alt="" coords="239,302,393,343"/>
+<area shape="rect" id="node13" href="$classrings_1_1quotients_1_1naive_1_1_quotient_ring.html" title="A ring of residue classes of ring elements modulo a fixed ring element; the residue classes (quotient..." alt="" coords="209,473,423,500"/>
+<area shape="rect" id="node15" href="$classfields_1_1finite_1_1naive_1_1_finite_field.html" title="The finite field with &#160;elements; the field operations on the element instances support the natural in..." alt="" coords="472,555,621,597"/>
+<area shape="rect" id="node34" href="$classrings_1_1_commutative_ring.html" title="A base class for elements of commutative rings that provides default operator overloading." alt="" coords="5,360,160,387"/>
+<area shape="rect" id="node38" href="$classfields_1_1_field.html" title="A base class for field elements that provides default operator overloading." alt="" coords="41,411,124,437"/>
+<area shape="rect" id="node42" href="$classrings_1_1integers_1_1naive_1_1_integers.html" title="The ring of integers." alt="" coords="227,613,405,640"/>
+</map>

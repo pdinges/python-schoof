@@ -1,0 +1,4 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node3" href="$classsupport_1_1running_1_1_soft_kill_exception.html" title="An Exception to signal that the user demanded the AlgorithmRunner to terminate." alt="" coords="165,5,320,46"/>
+<area shape="rect" id="node5" href="$classsupport_1_1running_1_1_time_out_exception.html" title="An Exception to signal that an algorithm pass in the AlgorithmRunner exceeded the time limit..." alt="" coords="133,71,352,97"/>
+</map>

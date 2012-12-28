@@ -1,0 +1,98 @@
+\form#0:$ \psi_l $
+\form#1:$ E[l]\setminus\{\mathcal{O}\} $
+\form#2:$ l $
+\form#3:$ l^2 $
+\form#4:$ (x, y) \in E\bigl(\mathbb{F}_{p}(E) / \psi_l\bigr) $
+\form#5:$ \mathbb{F}_{p}(E)/\psi_l $
+\form#6:$ E $
+\form#7:$ E = \bigl\{ (x, y) \mid y^2 = x^3 + Ax + B \bigr\} \cup \{\mathcal{O}\} $
+\form#8:$ \mathcal{O} $
+\form#9:$ y^2 = x^3 + Ax + B $
+\form#10:$ (x, y) \in E $
+\form#11:$ (x,y) $
+\form#12:$ (x, -y) $
+\form#13:$ (A, B) $
+\form#14:$ x^3 + Ax + B $
+\form#15:$ \mathbb{F}[x,y]/(y^2 - x^3 - Ax - B) $
+\form#16:$ \mathbb{F} $
+\form#17:$ A, B $
+\form#18:$ y^2 - x^3 - Ax - B $
+\form#19:$ y $
+\form#20:$ x $
+\form#21:$ s $
+\form#22:$ s(x, y) = a(x) + y\cdot b(x) $
+\form#23:$ a, b $
+\form#24:$ a $
+\form#25:$ b $
+\form#26:$ x^3 + 4x - y\cdot(3x + 2) $
+\form#27:$ \deg(x) = 2 $
+\form#28:$ \deg(y) = 3 $
+\form#29:$ x^4 + 2y^3 $
+\form#30:$ y^2 $
+\form#31:$ \sum_{k,l} a_{k,l}x^{k}y^{l} $
+\form#32:$ \sum_{k,l} b_{k,l}x^{k}y^{l} $
+\form#33:$ \sum_{k,l} (a_{k,l} + b_{k,l})x^{k}y^{l} $
+\form#34:$ \sum_{k,l} -a_{k,l}x^{k}y^{l} $
+\form#35:$ a(x) + y \cdot b(x) $
+\form#36:$ c(x) + y \cdot d(x) $
+\form#37:$ s(x, y) = a(x) + y \cdot b(x) $
+\form#38:$ p^k $
+\form#39:$ \mathbb{Z}/n\mathbb{Z} $
+\form#40:$ p $
+\form#41:$ k $
+\form#42:$ q = p^k $
+\form#43:$ (0, 1, 2, ..., p-1) $
+\form#44:$ \frac{\mathrm{numerator}}{\mathrm{denominator}} $
+\form#45:$ \frac{u}{v} $
+\form#46:$ \frac{s}{t} $
+\form#47:$ u\cdot t = s\cdot v $
+\form#48:$ \frac{ u\cdot t + s\cdot v }{ v\cdot t } $
+\form#49:$ \frac{-u}{v} $
+\form#50:$ \frac{ u\cdot s }{ v\cdot t } $
+\form#51:$ \frac{v}{u} $
+\form#52:$ \frac{0}{1} $
+\form#53:$ 0 $
+\form#54:$ 1 $
+\form#55:$ \frac{1}{1} $
+\form#56:$ t $
+\form#57:$ q + 1 - t $
+\form#58:$ q $
+\form#59:$ l=2 $
+\form#60:$ E[2] $
+\form#61:$ \phi $
+\form#62:$ \chi_\phi $
+\form#63:$ \phi \mod l $
+\form#64:$ \chi_{\phi}(phi) $
+\form#65:$ (\chi_{\phi}(\phi))(\mathtt{point}) $
+\form#66:$ (x^q, y^q) $
+\form#67:$ (x, y) $
+\form#68:$ 2q + 1 $
+\form#69:$ \left|t\right| \leq 2\sqrt{q} $
+\form#70:$ x^3 + 4x^2 - 3x + 2$
+\form#71:$ -\infty $
+\form#72:$ -2^{30} $
+\form#73:$ \sum_{k} a_{k}x^{k} $
+\form#74:$ \sum_{k} b_{k}x^{k} $
+\form#75:$ \sum_{k} (a_{k} + b_{k})x^{k} $
+\form#76:$ \sum_{k} -a_{k}x^{k} $
+\form#77:$ \sum_{k} \sum_{j=0}^{k}(a_{j} + b_{k-j})x^{k} $
+\form#78:$ p(x) = \sum_{k} a_{k}x^{k} $
+\form#79:$ c $
+\form#80:$ p(c) = \sum_{k} a_{k}c^{k} $
+\form#81:$ R/(m) $
+\form#82:$ R $
+\form#83:$ (m) $
+\form#84:$ m\in R $
+\form#85:$ x + y = z $
+\form#86:$ [x] + [y] = [z] $
+\form#87:$ [x], [y] $
+\form#88:$ x-y = m\cdot z $
+\form#89:$ [x + y] $
+\form#90:$ [-x] $
+\form#91:$ [x] $
+\form#92:$ [x \cdot y] $
+\form#93:$ z \mod \prod_{i} m_i $
+\form#94:\begin{align*} z &\equiv a_1 \mod m_1 \\ \vdots \\ z &\equiv a_k \mod m_k \end{align*}
+\form#95:$ m_i $
+\form#96:$ n+1 $
+\form#97:$ n $

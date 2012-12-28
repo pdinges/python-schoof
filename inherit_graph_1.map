@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classcallgraph_1_1_call_graph_node.html" title="Base class for nodes of CallGraphs." alt="" coords="6,31,170,57"/>
+<area shape="rect" id="node3" href="$classcallgraph_1_1_call.html" title="Call objects represent Function invocations in a CallGraph; they come from pstats.Stats entries and thus provide information on the call counts and execution time." alt="" coords="233,5,332,32"/>
+<area shape="rect" id="node5" href="$classcallgraph_1_1_function.html" title="Function objects represent called functions in a CallGraph; they originate in pstats.Stats entries and thus are identified by filename, line number, and function name." alt="" coords="219,56,346,83"/>
+</map>
