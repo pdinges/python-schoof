@@ -187,7 +187,7 @@ You should have received a copy of the [GNU General Public License][gpl3]
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-[api]: https://pdinges.github.com/python-schoof
+[api]: http://pdinges.github.com/python-schoof
 [callgrind]: http://valgrind.org/info/tools.html "Callgrind is part of the Valgrind tool suite"
 [gpl3]: http://opensource.org/licenses/GPL-3.0 "GNU General Public License, version 3"
 [kcachegrind]: http://kcachegrind.sourceforge.net/html/Home.html "Interactive viewer for Callgrind files."
