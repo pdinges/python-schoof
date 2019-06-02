@@ -194,4 +194,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 [python]: http://python.org "Python Programming Language"
 [python-using]: http://docs.python.org/py3k/using/index.html "Python Setup and Usage"
 [sea-algorithm]: http://en.wikipedia.org/wiki/Schoof%E2%80%93Elkies%E2%80%93Atkin_algorithm "Schoof-Elkies-Atkin algorithm for counting points on elliptic curves over finite fields."
-[thesis]: http://www.elwedgo.de/fileadmin/elwedgo.de/portfolio/diploma_thesis_math/dinges-elementary_schoof_derivation-thesis.pdf
+[thesis]: http://pdinges.github.com/python-schoof/dinges-elementary_schoof_derivation-thesis.pdf
